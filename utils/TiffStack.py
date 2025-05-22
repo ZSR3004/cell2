@@ -11,6 +11,19 @@ class TiffStack():
         assert self.df.shape[1] == n_channels, f"Expected {n_channels}, but got {self.df.shape[2]}"
         assert self.df.dtype == dtype, f"Expected {dtype}, but got {self.df.dtype}"
         self.img = tiff.TiffFile(path)
+    
+    def isolate_channel(self, channel_idx):
+        """
+        Isolates a specific channel from the TIFF stack.
+
+        Args:
+            channel_idx (int): Index of the channel to isolate (0-indexed).
+
+        Returns:
+            np.ndarray: Isolated channel as a 3D numpy array.
+        """
+        assert 0 <= channel_idx < self.df.shape[1], f"Channel index out of range: {channel_idx}"
+        return self.df[:, channel_idx, ...]
 
     def play_video(self, channel_idx = 0, delay = 30):
         """
