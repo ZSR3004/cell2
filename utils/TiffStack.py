@@ -12,7 +12,7 @@ class TiffStack():
         assert self.df.dtype == dtype, f"Expected {dtype}, but got {self.df.dtype}"
         self.img = tiff.TiffFile(path)
     
-    def isolate_channel(self, channel_idx):
+    def _isolate_channel(self, channel_idx):
         """
         Isolates a specific channel from the TIFF stack.
 
@@ -73,3 +73,69 @@ class TiffStack():
             else:
                 cv2.setTrackbarPos('Frame', window_name, current_frame_idx)
         cv2.destroyAllWindows()
+
+    def _preprocess_frame(self, frame, **kwargs):
+        """
+        Preprocesses a single frame by applying Gaussian and median blurs,
+        normalization, and dtype conversion — all optionally customizable.
+
+        Args:
+            frame (np.ndarray): Input frame to preprocess.
+            **kwargs: Dictionary with optional preprocessing config keys:
+                - gauss: dict with 'ksize' and 'sigmaX'
+                - median: dict with 'ksize'
+                - normalize: dict with 'alpha', 'beta', 'norm_type'
+                - convert: dict with 'dtype'
+
+        Returns:
+            np.ndarray: Preprocessed frame.
+        """
+        # defaults
+        gauss_cfg = kwargs.get('gauss', {'ksize': (5, 5), 'sigmaX': 1.5})
+        median_cfg = kwargs.get('median', {'ksize': 5})
+        norm_cfg = kwargs.get('normalize', {'alpha': 0, 'beta': 255, 'norm_type': cv2.NORM_MINMAX})
+
+        # processing
+        processed = cv2.GaussianBlur(frame, gauss_cfg['ksize'], gauss_cfg['sigmaX'])
+        processed = cv2.medianBlur(processed, median_cfg['ksize'])
+        processed = cv2.normalize(processed, None,
+                                norm_cfg['alpha'], norm_cfg['beta'],
+                                norm_cfg['norm_type'])
+        processed = cv2.convertScaleAbs(processed)
+        return processed
+
+    
+    def optical_flow(self, channel_idx=0,
+                 pyr_scale=0.5,
+                 levels=3,
+                 winsize=15,
+                 iterations=3,
+                 poly_n=5,
+                 poly_sigma=1.2,
+                 flags=0,
+                 **kwargs):
+        """
+        Computes dense optical flow using Farneback method on a preprocessed channel.
+
+        Args:
+            channel_idx (int): Channel index from TIFF stack.
+            pyr_scale, levels, winsize, iterations, poly_n, poly_sigma, flags:
+                Parameters for cv2.calcOpticalFlowFarneback.
+            **kwargs:
+                Passed to self._preprocess_frame for filtering (e.g., blur configs).
+
+        Returns:
+            np.ndarray: (N-1, H, W, 2) flow vectors between frames.
+        """
+        df = self._isolate_channel(channel_idx)
+        preprocessed = np.stack([self._preprocess_frame(f, **kwargs) for f in df])
+        num_frames, h, w = preprocessed.shape
+        flow = np.empty((num_frames - 1, h, w, 2), dtype=np.float32)
+
+        for i in range(num_frames - 1):
+            f1 = preprocessed[i]
+            f2 = preprocessed[i + 1]
+            flow[i] = cv2.calcOpticalFlowFarneback(f1, f2, None,
+                                                pyr_scale, levels, winsize,
+                                                iterations, poly_n, poly_sigma, flags)
+        return flow
