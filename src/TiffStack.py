@@ -12,7 +12,7 @@ class TiffStack():
         assert self.df.dtype == dtype, f"Expected {dtype}, but got {self.df.dtype}"
         self.img = tiff.TiffFile(path)
     
-    def _isolate_channel(self, channel_idx):
+    def isolate_channel(self, channel_idx):
         """
         Isolates a specific channel from the TIFF stack.
 
@@ -96,7 +96,7 @@ class TiffStack():
         norm_cfg = kwargs.get('normalize', {'alpha': 0, 'beta': 255, 'norm_type': cv2.NORM_MINMAX})
 
         # processing
-        processed = cv2.GaussianBlur(frame, gauss_cfg['ksize'], gauss_cfg['sigmaX'])
+        processed = cv2.GaussianBlur(frame, gauss_cfg['ksize'], gauss_cfg['sigmaX']) # scipy gassian laplace?
         processed = cv2.medianBlur(processed, median_cfg['ksize'])
         processed = cv2.normalize(processed, None,
                                 norm_cfg['alpha'], norm_cfg['beta'],
@@ -127,7 +127,7 @@ class TiffStack():
         Returns:
             np.ndarray: (N-1, H, W, 2) flow vectors between frames.
         """
-        df = self._isolate_channel(channel_idx)
+        df = self.isolate_channel(channel_idx)
         preprocessed = np.stack([self._preprocess_frame(f, **kwargs) for f in df])
         num_frames, h, w = preprocessed.shape
         flow = np.empty((num_frames - 1, h, w, 2), dtype=np.float32)
