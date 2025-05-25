@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import cv2
+from scipy.ndimage import gaussian_laplace
 
 class TiffStack():
     def __init__(self, path, n_channels = 3, dtype = np.uint16):
@@ -82,6 +83,7 @@ class TiffStack():
         Args:
             frame (np.ndarray): Input frame to preprocess.
             **kwargs: Dictionary with optional preprocessing config keys:
+                - laplace: dict with 'sigma' for Gaussian Laplace filter
                 - gauss: dict with 'ksize' and 'sigmaX'
                 - median: dict with 'ksize'
                 - normalize: dict with 'alpha', 'beta', 'norm_type'
@@ -91,19 +93,18 @@ class TiffStack():
             np.ndarray: Preprocessed frame.
         """
         # defaults
+        laplace_cfg = kwargs.get('laplace', {'sigma': 1.5})
         gauss_cfg = kwargs.get('gauss', {'ksize': (5, 5), 'sigmaX': 1.5})
         median_cfg = kwargs.get('median', {'ksize': 5})
         norm_cfg = kwargs.get('normalize', {'alpha': 0, 'beta': 255, 'norm_type': cv2.NORM_MINMAX})
 
         # processing
-        processed = cv2.GaussianBlur(frame, gauss_cfg['ksize'], gauss_cfg['sigmaX']) # scipy gassian laplace?
+        processed = gaussian_laplace(frame, laplace_cfg['sigma'])
+        processed = cv2.GaussianBlur(processed, gauss_cfg['ksize'], gauss_cfg['sigmaX'])
         processed = cv2.medianBlur(processed, median_cfg['ksize'])
-        processed = cv2.normalize(processed, None,
-                                norm_cfg['alpha'], norm_cfg['beta'],
-                                norm_cfg['norm_type'])
+        processed = cv2.normalize(processed, None, norm_cfg['alpha'], norm_cfg['beta'], norm_cfg['norm_type'])
         processed = cv2.convertScaleAbs(processed)
         return processed
-
     
     def optical_flow(self, channel_idx=0,
                  pyr_scale=0.5,
