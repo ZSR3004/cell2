@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
+import numpy as np
 
-def show_flow(flow):
+def show_flow(flow, title='Optical Flow'):
     step = 25
     Y, X = np.mgrid[0:flow.shape[0]:step, 0:flow.shape[1]:step]
     U = flow[::step, ::step, 0]  # dx
@@ -9,7 +10,7 @@ def show_flow(flow):
     # Create plot
     plt.figure(figsize=(12, 6))
     plt.quiver(X, Y, U, V, scale=200, pivot='tail', color='blue')
-    plt.title("Optical Flow Vector Field")
+    plt.title(title)
     plt.xlim(0, flow.shape[1])
     plt.ylim(flow.shape[0], 0)
     plt.xlabel("X")
