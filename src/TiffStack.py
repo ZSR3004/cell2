@@ -103,30 +103,38 @@ class TiffStack():
         processed = cv2.convertScaleAbs(processed)
         return processed
     
-    def optical_flow(self, channel_idx=0,
-                 pyr_scale=0.5,
-                 levels=3,
-                 winsize=15,
-                 iterations=3,
-                 poly_n=5,
-                 poly_sigma=1.2,
-                 flags=0,
-                 **kwargs):
+    def optical_flow(self, channel_idx=0, **kwargs):
         """
         Computes dense optical flow using Farneback method on a preprocessed channel.
 
         Args:
             channel_idx (int): Channel index from TIFF stack.
-            pyr_scale, levels, winsize, iterations, poly_n, poly_sigma, flags:
-                Parameters for cv2.calcOpticalFlowFarneback.
-            **kwargs:
-                Passed to self._preprocess_frame for filtering (e.g., blur configs).
-
+            **kwargs: Dictionary with optional parameters for flow and preprocessing:
+                - flow: dict with keys for Farneback parameters
+                    - pyr_scale: float, scale factor for pyramid
+                    - levels: int, number of pyramid levels
+                    - winsize: int, size of the window for averaging
+                    - iterations: int, number of iterations at each pyramid level
+                    - poly_n: int, size of the pixel neighborhood
+                    - poly_sigma: float, standard deviation of the Gaussian used for polynomial expansion
+                    - flags: int, operation flags
+                - preprocess: dict with keys for preprocessing (gauss, median, normalize)
+                    - gauss: dict with 'ksize' and 'sigmaX'
+                    - median: dict with 'ksize'
+                    - normalize: dict with 'alpha', 'beta', 'norm_type'
         Returns:
             np.ndarray: (N-1, H, W, 2) flow vectors between frames.
         """
+        flow_kwargs = kwargs.get('flow', {'pyr_scale': 0.5, 'levels': 3, 'winsize': 15,
+                                          'iterations': 3, 'poly_n': 5, 'poly_sigma': 1.2, 'flags': 0})
+
+        preprocess_kwargs = kwargs.get('preprocess', 
+                                       {'gauss': {'ksize': (5, 5), 'sigmaX': 1.5},
+                                          'median': {'ksize': 5},
+                                          'normalize': {'alpha': 0, 'beta': 255, 'norm_type': cv2.NORM_MINMAX}})
+
         df = self.isolate_channel(channel_idx)
-        preprocessed = np.stack([self._preprocess_frame(f, **kwargs) for f in df])
+        preprocessed = np.stack([self._preprocess_frame(f, **preprocess_kwargs) for f in df])
         num_frames, h, w = preprocessed.shape
         flow = np.empty((num_frames - 1, h, w, 2), dtype=np.float32)
 
@@ -134,6 +142,11 @@ class TiffStack():
             f1 = preprocessed[i]
             f2 = preprocessed[i + 1]
             flow[i] = cv2.calcOpticalFlowFarneback(f1, f2, None,
-                                                pyr_scale, levels, winsize,
-                                                iterations, poly_n, poly_sigma, flags)
+                                                flow_kwargs['pyr_scale'], 
+                                                flow_kwargs['levels'], 
+                                                flow_kwargs['winsize'], 
+                                                flow_kwargs['iterations'], 
+                                                flow_kwargs['poly_n'], 
+                                                flow_kwargs['poly_sigma'], 
+                                                flow_kwargs['flags'])
         return flow
