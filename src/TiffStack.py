@@ -12,7 +12,7 @@ class TiffStack():
         assert self.df.shape[1] == n_channels, f"Expected {n_channels}, but got {self.df.shape[2]}"
         assert self.df.dtype == dtype, f"Expected {dtype}, but got {self.df.dtype}"
         self.img = tiff.TiffFile(path)
-    
+
     def isolate_channel(self, channel_idx):
         """
         Isolates a specific channel from the TIFF stack.
@@ -75,78 +75,85 @@ class TiffStack():
                 cv2.setTrackbarPos('Frame', window_name, current_frame_idx)
         cv2.destroyAllWindows()
 
-    def _preprocess_frame(self, frame, **kwargs):
+    def _preprocess_frame(self, frame: np.ndarray, **kwargs) -> np.ndarray:
         """
-        Preprocesses a single frame by applying Gaussian and median blurs,
-        normalization, and dtype conversion — all optionally customizable.
+        Preprocesses a single frame with optional Gaussian/median blurs, normalization,
+        and type conversion.
 
         Args:
-            frame (np.ndarray): Input frame to preprocess.
-            **kwargs: Dictionary with optional preprocessing config keys:
-                - gauss: dict with 'ksize' and 'sigmaX'
-                - median: dict with 'ksize'
-                - normalize: dict with 'alpha', 'beta', 'norm_type'
-                - convert: dict with 'dtype'
+            frame (np.ndarray): Input image/frame.
+            **kwargs:
+                - gauss (dict): {'ksize': (int, int), 'sigmaX': float}
+                - median (dict): {'ksize': int}
+                - normalize (dict): {'alpha': int, 'beta': int, 'norm_type': int}
+                - convert (dict): {'dtype': np.dtype}
+                - skip (list[str]): steps to skip (e.g., ['gauss', 'median'])
 
         Returns:
-            np.ndarray: Preprocessed frame.
+            np.ndarray: Preprocessed image.
         """
-        # defaults
-        gauss_cfg = kwargs.get('gauss', {'ksize': (5, 5), 'sigmaX': 1.5})
-        median_cfg = kwargs.get('median', {'ksize': 5})
-        norm_cfg = kwargs.get('normalize', {'alpha': 0, 'beta': 255, 'norm_type': cv2.NORM_MINMAX})
+        skip = kwargs.get("skip", [])
 
-        # processing
-        processed = cv2.GaussianBlur(frame, gauss_cfg['ksize'], gauss_cfg['sigmaX'])
-        processed = cv2.medianBlur(processed, median_cfg['ksize'])
-        processed = cv2.normalize(processed, None, norm_cfg['alpha'], norm_cfg['beta'], norm_cfg['norm_type'])
-        processed = cv2.convertScaleAbs(processed)
-        return processed
-    
-    def optical_flow(self, channel_idx=0, **kwargs):
+        if "gauss" not in skip:
+            gauss_cfg = kwargs.get("gauss", {})
+            ksize = gauss_cfg.get("ksize", (5, 5))
+            sigmaX = gauss_cfg.get("sigmaX", 1.5)
+            frame = cv2.GaussianBlur(frame, ksize, sigmaX)
+
+        if "median" not in skip:
+            median_cfg = kwargs.get("median", {})
+            ksize = median_cfg.get("ksize", 5)
+            frame = cv2.medianBlur(frame, ksize)
+
+        if "normalize" not in skip:
+            norm_cfg = kwargs.get("normalize", {})
+            alpha = norm_cfg.get("alpha", 0)
+            beta = norm_cfg.get("beta", 255)
+            norm_type = norm_cfg.get("norm_type", cv2.NORM_MINMAX)
+            frame = cv2.normalize(frame, None, alpha, beta, norm_type)
+
+        if "convert" not in skip:
+            frame = cv2.convertScaleAbs(frame)
+
+        return frame
+
+    def optical_flow(self, channel_idx : int,
+                     pyr_scale : float = 0.5, 
+                     levels : int = 3, 
+                     winsize : int = 15,
+                     iterations : int = 3, 
+                     poly_n : int = 5, 
+                     poly_sigma : float = 1.2,
+                     flag : int = 0, 
+                     **kwargs):
         """
         Computes dense optical flow using Farneback method on a preprocessed channel.
 
         Args:
             channel_idx (int): Channel index from TIFF stack.
-            **kwargs: Dictionary with optional parameters for flow and preprocessing:
-                - flow: dict with keys for Farneback parameters
-                    - pyr_scale: float, scale factor for pyramid
-                    - levels: int, number of pyramid levels
-                    - winsize: int, size of the window for averaging
-                    - iterations: int, number of iterations at each pyramid level
-                    - poly_n: int, size of the pixel neighborhood
-                    - poly_sigma: float, standard deviation of the Gaussian used for polynomial expansion
-                    - flags: int, operation flags
-                - preprocess: dict with keys for preprocessing (gauss, median, normalize)
-                    - gauss: dict with 'ksize' and 'sigmaX'
-                    - median: dict with 'ksize'
-                    - normalize: dict with 'alpha', 'beta', 'norm_type'
+                - pyr_scale: float, scale factor for pyramid
+                - levels: int, number of pyramid levels
+                - winsize: int, size of the window for averaging
+                - iterations: int, number of iterations at each pyramid level
+                - poly_n: int, size of the pixel neighborhood
+                - poly_sigma: float, standard deviation of the Gaussian used for polynomial expansion
+                - flags: int, operation flags
+                - **kwargs: dict with keys for preprocessing (see _preprocess_frame)
+                    
         Returns:
             np.ndarray: (N-1, H, W, 2) flow vectors between frames.
-        """
-        flow_kwargs = kwargs.get('flow', {'pyr_scale': 0.5, 'levels': 3, 'winsize': 15,
-                                          'iterations': 3, 'poly_n': 5, 'poly_sigma': 1.2, 'flags': 0})
-
-        preprocess_kwargs = kwargs.get('preprocess', 
-                                       {'gauss': {'ksize': (5, 5), 'sigmaX': 1.5},
-                                          'median': {'ksize': 5},
-                                          'normalize': {'alpha': 0, 'beta': 255, 'norm_type': cv2.NORM_MINMAX}})
-
+        """ 
         df = self.isolate_channel(channel_idx)
-        preprocessed = np.stack([self._preprocess_frame(f, **preprocess_kwargs) for f in df])
+        preprocessed = np.stack([self._preprocess_frame(f, **kwargs) for f in df])
         num_frames, h, w = preprocessed.shape
-        flow = np.empty((num_frames - 1, h, w, 2), dtype=np.float32)
 
+        flow = np.empty((num_frames - 1, h, w, 2), dtype=np.float32)
         for i in range(num_frames - 1):
             f1 = preprocessed[i]
             f2 = preprocessed[i + 1]
             flow[i] = cv2.calcOpticalFlowFarneback(f1, f2, None,
-                                                flow_kwargs['pyr_scale'], 
-                                                flow_kwargs['levels'], 
-                                                flow_kwargs['winsize'], 
-                                                flow_kwargs['iterations'], 
-                                                flow_kwargs['poly_n'], 
-                                                flow_kwargs['poly_sigma'], 
-                                                flow_kwargs['flags'])
+                                                   pyr_scale, levels, 
+                                                   winsize, iterations, 
+                                                   poly_n, poly_sigma, 
+                                                   flag)
         return flow
