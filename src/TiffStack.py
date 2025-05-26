@@ -83,6 +83,7 @@ class TiffStack():
         Args:
             frame (np.ndarray): Input image/frame.
             **kwargs:
+                - laplace (dict): {'sigma': float} for Gaussian Laplace filter
                 - gauss (dict): {'ksize': (int, int), 'sigmaX': float}
                 - median (dict): {'ksize': int}
                 - normalize (dict): {'alpha': int, 'beta': int, 'norm_type': int}
@@ -93,6 +94,11 @@ class TiffStack():
             np.ndarray: Preprocessed image.
         """
         skip = kwargs.get("skip", [])
+
+        if 'laplace' in skip:
+            laplace_cfg = kwargs.get("laplace", {})
+            sigma = laplace_cfg.get("sigma", 1.0)
+            frame = gaussian_laplace(frame, sigma=sigma)
 
         if "gauss" not in skip:
             gauss_cfg = kwargs.get("gauss", {})
