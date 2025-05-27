@@ -4,14 +4,34 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import cv2
 from scipy.ndimage import gaussian_laplace
+import time
 
 class TiffStack():
     def __init__(self, path, n_channels = 3, dtype = np.uint16):
         self.path = path
-        self.df = tiff.imread(path)
-        assert self.df.shape[1] == n_channels, f"Expected {n_channels}, but got {self.df.shape[2]}"
-        assert self.df.dtype == dtype, f"Expected {dtype}, but got {self.df.dtype}"
-        self.img = tiff.TiffFile(path)
+        self.date = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+        try:
+            with tiff.TiffFile(path) as img:
+                self.tags = []
+
+                total_pages = len(img.pages)
+                assert total_pages % n_channels == 0, f"Number of pages ({total_pages}) must be divisible by n_channels ({n_channels})"
+
+                n_frames = total_pages // n_channels
+                ref_shape = img.pages[0].shape
+                ref_dtype = img.pages[0].dtype
+                assert ref_dtype == dtype, f"Expected dtype {dtype}, but got {ref_dtype}"
+
+                self.arr = np.empty((n_frames, n_channels, ref_shape[0], ref_shape[1]), dtype=dtype)
+                for i in range(n_frames):
+                    for c in range(n_channels):
+                        page_idx = i * n_channels + c
+                        self.arr[i, c] = img.pages[page_idx].asarray()
+                    self.tags.append([img.pages[i * n_channels + c].tags for c in range(n_channels)])
+
+        except Exception as e:
+            print(f"Error loading TIFF file: {e}")
+
 
     def isolate_channel(self, channel_idx):
         """
@@ -23,8 +43,8 @@ class TiffStack():
         Returns:
             np.ndarray: Isolated channel as a 3D numpy array.
         """
-        assert 0 <= channel_idx < self.df.shape[1], f"Channel index out of range: {channel_idx}"
-        return self.df[:, channel_idx, ...]
+        assert 0 <= channel_idx < self.arr.shape[1], f"Channel index out of range: {channel_idx}"
+        return self.arr[:, channel_idx, ...]
 
     def play_video(self, channel_idx = 0, delay = 30):
         """
@@ -38,8 +58,8 @@ class TiffStack():
         Returns:
             None: Just plays the video
         """
-        assert 0 <= channel_idx < self.df.shape[1], f"Channel index out of range: {channel_idx}"
-        channel_stack = self.df[:, channel_idx, ...]
+        assert 0 <= channel_idx < self.arr.shape[1], f"Channel index out of range: {channel_idx}"
+        channel_stack = self.arr[:, channel_idx, ...]
         total_frames = channel_stack.shape[0]
         current_frame_idx = 0
         is_playing = False
@@ -149,8 +169,8 @@ class TiffStack():
         Returns:
             np.ndarray: (N-1, H, W, 2) flow vectors between frames.
         """ 
-        df = self.isolate_channel(channel_idx)
-        preprocessed = np.stack([self._preprocess_frame(f, **kwargs) for f in df])
+        arr = self.isolate_channel(channel_idx)
+        preprocessed = np.stack([self._preprocess_frame(f, **kwargs) for f in arr])
         num_frames, h, w = preprocessed.shape
 
         flow = np.empty((num_frames - 1, h, w, 2), dtype=np.float32)
