@@ -9,7 +9,7 @@ import time
 class TiffStack():
     def __init__(self, path, n_channels = 3, dtype = np.uint16):
         self.path = path
-        self.date = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+        self.timestamp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
         try:
             with tiff.TiffFile(path) as img:
                 self.tags = []
