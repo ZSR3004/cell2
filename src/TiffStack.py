@@ -5,14 +5,34 @@ from matplotlib.animation import FuncAnimation
 import cv2
 from scipy.ndimage import gaussian_laplace
 import time
+import os
+from .memory import check_params, save_TiffStack
 
 class TiffStack():
-    def __init__(self, path, n_channels = 3, dtype = np.uint16):
+    def __init__(self, path, stack_type, name = None, n_channels = 3, dtype = np.uint16):
+        """
+        Initializes a TiffStack object by loading a TIFF file and extracting its frames.
+        Args:
+            path (str): Path to the TIFF file.
+            n_channels (int): Number of channels in the TIFF stack. Default is 3.
+            dtype (np.dtype): Data type of the image frames. Default is np.uint16.
+        
+        Attributes:
+            path (str): Path to the TIFF file.
+            timestamp (str): Timestamp of when the TIFF file was loaded.
+            tags (list): List of tags for each frame in the TIFF stack.
+            arr (np.ndarray): 4D numpy array containing the image frames, shape is (n_frames, n_channels, height, width).
+        """
         self.path = path
-        self.timestamp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+        self.stack_type = stack_type
+        self.n_channels = n_channels
+        self.dtype = dtype
+        if name is None:
+            self.name = self._get_name()
+        else:
+            self.name = name
         try:
             with tiff.TiffFile(path) as img:
-                self.tags = []
 
                 total_pages = len(img.pages)
                 assert total_pages % n_channels == 0, f"Number of pages ({total_pages}) must be divisible by n_channels ({n_channels})"
@@ -27,12 +47,25 @@ class TiffStack():
                     for c in range(n_channels):
                         page_idx = i * n_channels + c
                         self.arr[i, c] = img.pages[page_idx].asarray()
-                    self.tags.append([img.pages[i * n_channels + c].tags for c in range(n_channels)])
 
         except Exception as e:
             print(f"Error loading TIFF file: {e}")
 
+        self.params = check_params(self.stack_type)
+        save_TiffStack(self.path, self.name, self.stack_type, self.arr, self.params)
+        
 
+    def _get_name(self):
+        """
+        Generates a name for the TiffStack based on the file name.
+        
+        Returns:
+            str: Name of the TiffStack.
+        """
+        base = os.path.basename(self.path)
+        stem = os.path.splitext(base)[0]
+        return stem
+    
     def isolate_channel(self, channel_idx):
         """
         Isolates a specific channel from the TIFF stack.
