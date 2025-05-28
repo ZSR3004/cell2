@@ -6,7 +6,7 @@ import cv2
 from scipy.ndimage import gaussian_laplace
 import time
 import os
-from .memory import check_params, save_TiffStack
+from .Memory import check_params, save_TiffStack
 
 class TiffStack():
     def __init__(self, path, stack_type, name = None, n_channels = 3, dtype = np.uint16):
