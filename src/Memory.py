@@ -105,13 +105,13 @@ def check_params(stack_type):
         types = json.load(f)
     
     if stack_type not in types:
-        types[stack_type] = { 'opt_flow ': {      'pyr_scale' : 0.5,
+        types[stack_type] = { 'opt_flow': {      'pyr_scale' : 0.5,
                                                     'levels' : 3,
                                                     'winsize' : 15,
                                                     'iterations' : 3,
                                                     'poly_n' : 5,
                                                     'poly_sigma' : 1.2,
-                                                    'flags' : 0},
+                                                    'flag' : 0},
                                 'process_args' : {  'gauss' : {'ksize': (5, 5), 'sigmaX': 1.5},
                                                     'median': {'ksize': 5},
                                                     'normalize': {'alpha': 0, 'beta': 255, 'norm_type': cv2.NORM_MINMAX},
@@ -132,9 +132,6 @@ def save_TiffStack(path, name, stack_type, arr, params):
     Returns:
         None: The function saves the image and its metadata to a JSON file.
         """
-    if not main_path.exists():
-        init_memory()    
-
     save_params(stack_type, params)
 
     file_path = main_path / name

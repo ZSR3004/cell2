@@ -6,7 +6,7 @@ import cv2
 from scipy.ndimage import gaussian_laplace
 import time
 import os
-from .Memory import check_params, save_TiffStack
+from .Memory import check_params, save_TiffStack, init_memory, main_path
 
 class TiffStack():
     def __init__(self, path, stack_type, name = None, n_channels = 3, dtype = np.uint16):
@@ -50,6 +50,9 @@ class TiffStack():
 
         except Exception as e:
             print(f"Error loading TIFF file: {e}")
+        
+        if not main_path.exists():
+            init_memory() 
 
         self.params = check_params(self.stack_type)
         save_TiffStack(self.path, self.name, self.stack_type, self.arr, self.params)
@@ -175,8 +178,22 @@ class TiffStack():
             frame = cv2.convertScaleAbs(frame)
 
         return frame
+    
+    def optical_flow(self, channel_idx : int):
+        opt_flow = self.params['opt_flow']
+        process_args = self.params['process_args']
+        return self.experiment_optical_flow(channel_idx,
+                                            opt_flow['pyr_scale'],
+                                            opt_flow['levels'],
+                                            opt_flow['winsize'],
+                                            opt_flow['iterations'],
+                                            opt_flow['poly_n'],
+                                            opt_flow['poly_sigma'],
+                                            opt_flow['flag'],
+                                            **process_args)
 
-    def optical_flow(self, channel_idx : int,
+
+    def experiment_optical_flow(self, channel_idx : int,
                      pyr_scale : float = 0.5, 
                      levels : int = 3, 
                      winsize : int = 15,
@@ -186,7 +203,8 @@ class TiffStack():
                      flag : int = 0, 
                      **kwargs):
         """
-        Computes dense optical flow using Farneback method on a preprocessed channel.
+        Computes dense optical flow using Farneback method on a preprocessed channel. Allows manual
+        changes to the params for optical flow.
 
         Args:
             channel_idx (int): Channel index from TIFF stack.
