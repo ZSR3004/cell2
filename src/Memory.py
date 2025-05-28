@@ -132,6 +132,9 @@ def save_TiffStack(path, name, stack_type, arr, params):
     Returns:
         None: The function saves the image and its metadata to a JSON file.
         """
+    if not main_path.exists():
+        init_memory()    
+
     save_params(stack_type, params)
 
     file_path = main_path / name
