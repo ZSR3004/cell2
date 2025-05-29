@@ -3,7 +3,7 @@ import matplotlib.animation as animation
 import numpy as np
 import cv2
 
-def show_flow(flow, title='Optical Flow'):
+def show_flow(flow : np.array, title='Optical Flow'):
     """
     Displays optical flow as a quiver plot using matplotlib.
 
@@ -31,7 +31,7 @@ def show_flow(flow, title='Optical Flow'):
     plt.tight_layout()
     plt.show()
 
-def show_image(image, title='Image', figsize=(12, 8)):
+def show_image(image : np.array, title='Image', figsize=(12, 8)):
     """
     Displays an image using matplotlib.
 
@@ -49,7 +49,8 @@ def show_image(image, title='Image', figsize=(12, 8)):
     plt.axis('off')
     plt.show()
 
-def save_optical_flow_video(optical_flow, image_stack, output_file, step=20, scale=1, fps=10):
+def save_optical_flow_video(optical_flow : np.array, image_stack : np.array, 
+                            output_file, step=20, scale=1, fps=10):
     """
     Saves an MP4 video showing optical flow vector fields over time.
     
