@@ -30,40 +30,23 @@ def init_memory():
     except Exception as e:
         print(f"[ERROR] Failed to initialize memory: {e}")
 
-def save_arrays(path, **arrays):
+def save_flow(name, arr):
     """
-    Saves multiple arrays to a compressed .npz file.
-    
-    Args:
-        path (str): The file path where the arrays will be saved.
-        **arrays: Named arrays to save. Each argument should be a NumPy array.
-
-    Returns:
-        None: The function saves the arrays to the specified path.
-    
-    Raises:
-        PermissionError: If there is a permission issue when trying to save the file.
-        FileNotFoundError: If the directory does not exist.
-        TypeError: If any of the provided arrays are not NumPy arrays.
-        Exception: For any other unexpected errors.
+    Saves the optical flow np array in a directory named after `name + '_flow'`,
+    and automatically increments the filename to avoid overwriting.
     """
-    try:
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        for name, arr in arrays.items():
-            if not isinstance(arr, np.ndarray):
-                raise TypeError(f"'{name}' is not a NumPy array")
-        np.savez_compressed(path, **arrays)
+    save_dir = main_path / name / 'flow'
+    save_dir.mkdir(parents=True, exist_ok=True)
+    i = 0
+    while True:
+        file_name = f"{name}_flow_{i}.npz"
+        file_path = save_dir / file_name
+        if not file_path.exists():
+            np.save(file_path, arr)
+            break
+        i += 1
 
-    except PermissionError:
-        print(f"[ERROR] Permission denied while saving to: {path}")
-    except FileNotFoundError:
-        print(f"[ERROR] Directory not found for path: {path}")
-    except TypeError as e:
-        print(f"[ERROR] {e}")
-    except Exception as e:
-        print(f"[ERROR] Unexpected error while saving: {e}")
-    
-    return None
+
 
 def save_params(stack_type, params):
     """
