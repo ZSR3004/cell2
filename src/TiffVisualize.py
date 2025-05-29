@@ -63,6 +63,9 @@ def save_optical_flow_video(optical_flow, image_stack, output_file, step=20, sca
     
     Returns:
         None, saves the video to the specified output file.
+    
+    TODO:
+        - Make more visible by changing color, vector sizes, etc.
     """
     T_minus_1, H, W, _ = optical_flow.shape
     Y, X = np.mgrid[0:H:step, 0:W:step]
