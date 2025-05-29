@@ -2,6 +2,17 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 def show_flow(flow, title='Optical Flow'):
+    """
+    Displays optical flow as a quiver plot using matplotlib.
+    
+    Args:
+        flow (np.ndarray): Optical flow array of shape (H, W, 2) where H is height, W is width,
+                           and the last dimension contains the flow vectors (dx, dy).
+        title (str): Title of the plot. Default is 'Optical Flow'.
+
+    Returns:
+        None: Just displays the plot.
+    """
     step = 25
     Y, X = np.mgrid[0:flow.shape[0]:step, 0:flow.shape[1]:step]
     U = flow[::step, ::step, 0]  # dx
