@@ -18,17 +18,19 @@ def show_flow(flow, title='Optical Flow'):
     plt.tight_layout()
     plt.show()
 
-def show_image(image, title='Image'):
+def show_image(image, title='Image', figsize=(12, 8)):
     """
     Displays an image using matplotlib.
 
     Args:
         image (np.ndarray): Image to display.
         title (str): Title of the window. Default is 'Image'.
+        figsize (tuple): Figure size in inches (width, height). Default is (12, 8).
 
     Returns:
         None: Just displays the image.
     """
+    plt.figure(figsize=figsize)
     plt.imshow(image, cmap='gray')
     plt.title(title)
     plt.axis('off')
