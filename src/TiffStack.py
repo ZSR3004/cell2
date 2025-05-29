@@ -6,7 +6,7 @@ import cv2
 from scipy.ndimage import gaussian_laplace
 import time
 import os
-from .Memory import check_params, save_TiffStack, init_memory, main_path
+from .Memory import check_params, save_TiffStack, init_memory, save_flow, main_path
 
 class TiffStack():
     def __init__(self, path, stack_type, name = None, n_channels = 3, dtype = np.uint16):
@@ -69,7 +69,7 @@ class TiffStack():
         stem = os.path.splitext(base)[0]
         return stem
     
-    def isolate_channel(self, channel_idx):
+    def isolate_channel(self, channel_idx : int):
         """
         Isolates a specific channel from the TIFF stack.
 
@@ -82,7 +82,7 @@ class TiffStack():
         assert 0 <= channel_idx < self.arr.shape[1], f"Channel index out of range: {channel_idx}"
         return self.arr[:, channel_idx, ...]
 
-    def play_video(self, channel_idx = 0, delay = 30):
+    def play_video(self, channel_idx : int = 0, delay : int = 30):
         """
         Plays video of the "channel_idx"th channel in the tiff stack. Press 'q' to quit, 'space' to pause/play, 
         left/right arrow keys to navigate frames.
@@ -179,10 +179,16 @@ class TiffStack():
 
         return frame
     
-    def optical_flow(self, channel_idx : int):
+    def optical_flow(self):
+        """
+        Computes optical flow between the first two channels of the TIFF stack using Farneback method.
+        Args:
+            None
+        Returns:
+            np.ndarray: (N-1, H, W, 2) flow vectors between frames."""
         opt_flow = self.params['opt_flow']
         process_args = self.params['process_args']
-        return self.experiment_optical_flow(channel_idx,
+        flow_2 = self.experiment_optical_flow(1,
                                             opt_flow['pyr_scale'],
                                             opt_flow['levels'],
                                             opt_flow['winsize'],
@@ -191,6 +197,21 @@ class TiffStack():
                                             opt_flow['poly_sigma'],
                                             opt_flow['flag'],
                                             **process_args)
+        flow_3 = self.experiment_optical_flow(2,
+                                            opt_flow['pyr_scale'],
+                                            opt_flow['levels'],
+                                            opt_flow['winsize'],
+                                            opt_flow['iterations'],
+                                            opt_flow['poly_n'],
+                                            opt_flow['poly_sigma'],
+                                            opt_flow['flag'],
+                                            **process_args)
+        
+        sum_arr = flow_2 + flow_3
+        combined = np.stack([sum_arr, flow_2, flow_3], axis=1)
+        save_flow(self.name, combined)
+        return combined
+
 
 
     def experiment_optical_flow(self, channel_idx : int,
