@@ -6,7 +6,8 @@ import cv2
 from scipy.ndimage import gaussian_laplace
 import time
 import os
-from .Memory import check_params, save_TiffStack, init_memory, save_flow, main_path
+from .Memory import *
+from .TiffVisualize import show_flow, show_image, save_optical_flow_video
 
 class TiffStack():
     def __init__(self, path, stack_type, name = None, n_channels = 3, dtype = np.uint16):
@@ -162,8 +163,6 @@ class TiffStack():
         combined = np.stack([sum_arr, flow_2, flow_3], axis=1)
         save_flow(self.name, combined)
         return combined
-
-
 
     def experiment_optical_flow(self, channel_idx : int,
                      pyr_scale : float = 0.5, 
