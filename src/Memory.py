@@ -46,6 +46,30 @@ def save_flow(name, arr):
             break
         i += 1
 
+def load_flow(name):
+    """
+    Loads the optical flow np array from a directory named after `name + '_flow'`.
+    
+    Args:
+        name (str): The base name of the flow file to load.
+
+    Returns:
+        np.ndarray: The loaded optical flow array.
+    
+    Raises:
+        FileNotFoundError: If no flow file exists for the given name.
+    """
+    save_dir = main_path / name / 'flow'
+    if not save_dir.exists():
+        raise FileNotFoundError(f"No flow files found for {name}.")
+    
+    files = list(save_dir.glob(f"{name}_flow_*.npz"))
+    if not files:
+        raise FileNotFoundError(f"No flow files found for {name}.")
+    
+    # Sort files by modification time, newest first
+    files.sort(key=lambda f: f.stat().st_mtime, reverse=True)
+    return np.load(files[0])['arr_0']
 
 
 def save_params(stack_type, params):
