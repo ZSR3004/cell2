@@ -71,20 +71,66 @@ def get_out_path(name : str, flag : str):
         i += 1
 
 # saving
-def save_type(  stacktype : str, **kwargs):
-    pass
+def save_type(stacktype : str, **kwargs):
+    """
+    Saves the type of stack to the types.json file.
+    
+    Args:
+        stacktype (str): The type of stack to save.
+        **kwargs: Additional keyword arguments that can include:
+            - process: parameters for preprocessing the stack.
+            - flow: parameters for optical flow calculation.
+            - trajectory: parameters for trajectory calculation.
+    
+    Returns:
+        None: Just saves the type to the types.json file.
+    """
 
 def save_meta(path : str, stacktype : str, name : str):
-    pass
+    """
+    Saves metadata about the stack to a JSON file.
+    Args:
+        path (str): The path where the metadata file will be saved.
+        stacktype (str): The type of the stack.
+        name (str): The name of the stack.
+
+    Returns:
+        None: Just saves the metadata to the specified path.
+    """
 
 def save_arr(arr : np.array):
+    """
+    Saves a numpy array to a file.
+    
+    Args:
+        arr (np.array): The numpy array to save.
+    
+    Returns:
+        None: Just saves the array to a file.
+    """
     pass
 
-def save_flow(flow_arr : np.array):
-    pass
+def save_flow_traj(name : str, arr : np.array, flag : str):
+    """
+    Saves the optical flow or trajectory array to a file based on the flag.
+    
+    Args:
+        arr (np.array): The optical flow or trajectory array to save, expected to be of shape (T, H, W, 2)
+            where T is the number of frames, H is height, W is width, and the last dimension contains
+            the flow vectors (dx, dy) or trajectory vectors.
+        flag (str): A flag indicating whether to save as 'flow' or 'trajectory'.
+    
+    Returns:
+        None: Just saves the array to a file.
+    """
+    if flag not in ['flow', 'trajectory']:
+        raise ValueError(f"Unknown flag: {flag}. Expected 'flow' or 'trajectory'.")
+    
+    output_file = get_out_path(name:, flag)
+    np.save(output_file, arr)
 
-def save_trajectory(trajectory_arr : np.array):
-    pass
+save_flow = lambda flow_arr: save_flow_traj(flow_arr, 'f')
+save_trajectory = lambda trajectory_arr: save_flow_traj(trajectory_arr, 't')
 
 def save_video(name : str, flag : str, **kwargs):
     """
