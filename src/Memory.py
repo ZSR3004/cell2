@@ -46,7 +46,7 @@ def save_flow(flow_arr : np.array):
 def save_trajectory(trajectory_arr : np.array):
     pass
 
-def save_video():
+def save_video(output_path : str):
     pass
 
 # loading
