@@ -7,6 +7,19 @@ import matplotlib.animation as animation
 main_path = Path.home() / "Desktop" / "Cell Flow Tracking"
 types_path = main_path / "types.json"
 
+default_process = {'gauss' : {'ksize': (5, 5), 'sigmaX': 1.5},
+                                     'median': {'ksize': 5},
+                                     'normalize': {'alpha': 0, 'beta': 255, 'norm_type': cv2.NORM_MINMAX},
+                                     'flags' : ['laplace']}
+default_flow = {'pyr_scale' : 0.5,
+                                'levels' : 3,
+                                'winsize' : 15,
+                                'iterations' : 3,
+                                'poly_n' : 5,
+                                'poly_sigma' : 1.2,
+                                'flag' : 0}
+default_trajectory = {} # empty until properly implemented
+
 def init_memory():
     """
     Initializes memory for the application.
@@ -85,19 +98,9 @@ def save_type(stacktype : str, **kwargs):
     Returns:
         None: Just saves the type to the types.json file.
     """
-    process = kwargs.get('process', {'gauss' : {'ksize': (5, 5), 'sigmaX': 1.5},
-                                     'median': {'ksize': 5},
-                                     'normalize': {'alpha': 0, 'beta': 255, 'norm_type': cv2.NORM_MINMAX},
-                                     'flags' : ['laplace']})
-
-    flow = kwargs.get('flow', {'pyr_scale' : 0.5,
-                                'levels' : 3,
-                                'winsize' : 15,
-                                'iterations' : 3,
-                                'poly_n' : 5,
-                                'poly_sigma' : 1.2,
-                                'flag' : 0})
-    trajectory = kwargs.get('trajectory', {}) # empty until trajectory is properly implemented
+    process = kwargs.get('process', default_process)
+    flow = kwargs.get('flow', default_flow)
+    trajectory = kwargs.get('trajectory', default_trajectory)
 
     params = {'process' : process, 'flow' : flow, 'trajectory' : trajectory}
 
@@ -216,3 +219,23 @@ def save_video(name : str, flag : str, **kwargs):
     Writer = animation.writers['ffmpeg']
     writer = Writer(fps=fps, metadata=dict(artist='Optical Flow'), bitrate=1800)
     ani.save(output_file, writer=writer)
+
+def load_params(stacktype : str):
+    """
+    Loads parameters from types.json.
+
+    Args:
+        stacktype: The type of cell.
+    
+    Returns:
+        params: Dictionary of parameters.
+    """
+    with open(types_path, 'r') as f:
+        types = json.load(f)
+    
+    if stacktype not in types:
+        params = {'process' : default_process, 'flow' : default_flow, 'trajectory' : default_trajectory}
+    else:
+        params = types[stacktype]
+
+    return params
