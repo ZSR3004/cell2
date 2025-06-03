@@ -10,8 +10,6 @@
 
 5. [Usage Examples](#usage-examples)
 
-6. [Future Additions](#future-additions)
-
 7. [Acknowledgments](#acknowledgments)
 
 ## Project Overview
@@ -106,7 +104,5 @@ This is an `.np` file that holds the original Tiff stack. It's in shape `(frames
 
 ## Usage Examples
 For usage examples, please refer to the `example_notebooks` subdirectory.
-
-## Future Additions
 
 ## Acknowledgments
