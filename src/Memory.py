@@ -189,16 +189,3 @@ def save_video(name : str, flag : str, **kwargs):
     Writer = animation.writers['ffmpeg']
     writer = Writer(fps=fps, metadata=dict(artist='Optical Flow'), bitrate=1800)
     ani.save(output_file, writer=writer)
-
-# loading
-def load_type(stacktype : str):
-    pass
-
-def load_arr(arr : np.array):
-    pass
-
-def load_flow(flow_arr : np.array):
-    pass
-
-def load_trajectory(trajectory_arr : np.array):
-    pass
