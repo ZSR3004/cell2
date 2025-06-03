@@ -3,7 +3,7 @@ from pathlib import Path
 import json
 import numpy as np
 import matplotlib.animation as animation
-from .TiffStack import default_process, default_flow, default_trajectory
+from .Defaults import default_process, default_flow, default_trajectory
 
 main_path = Path.home() / "Desktop" / "Cell Flow Tracking"
 types_path = main_path / "types.json"
