@@ -55,8 +55,9 @@ class TiffStack():
         if not main_path.exists():
             init_memory() 
 
-        self.params = load_params(self.stacktype)
-        self.save_TiffStack()
+        # Need to test this on main lab computer
+        # self.params = load_params(self.stacktype)
+        # self.save_TiffStack()
     
     def _get_name(self):
         """
