@@ -98,7 +98,7 @@ def save_meta(path : str, stacktype : str, name : str):
         None: Just saves the metadata to the specified path.
     """
 
-def save_arr(arr : np.array):
+def save_arr(name : str, arr : np.array):
     """
     Saves a numpy array to a file.
     
