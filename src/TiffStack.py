@@ -81,7 +81,8 @@ class TiffStack():
         """
         save_type(self.stacktype, self.params)
         save_meta(self.path, self.stacktype, self.name)
-        save_arr(self.name, self.arr)
+        # removing this for now: check with Mitchel
+        # save_arr(self.name, self.arr)
     
     def isolate_channel(self, channel_idx : int):
         """
