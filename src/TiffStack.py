@@ -23,7 +23,7 @@ default_flow = {'pyr_scale' : 0.5,
 default_trajectory = {} # empty until properly implemented
 
 class TiffStack():
-    def __init__(self, path, stack_type, name = None, n_channels = 3, dtype = np.uint16):
+    def __init__(self, path, stacktype, name = None, n_channels = 3, dtype = np.uint16):
         """
         Initializes a TiffStack object by loading a TIFF file and extracting its frames.
         Args:
@@ -38,16 +38,16 @@ class TiffStack():
             arr (np.ndarray): 4D numpy array containing the image frames, shape is (n_frames, n_channels, height, width).
         """
         self.path = path
-        self.stack_type = stack_type
+        self.stacktype = stacktype
         self.n_channels = n_channels
         self.dtype = dtype
         if name is None:
             self.name = self._get_name()
         else:
             self.name = name
+
         try:
             with tiff.TiffFile(path) as img:
-
                 total_pages = len(img.pages)
                 assert total_pages % n_channels == 0, f"Number of pages ({total_pages}) must be divisible by n_channels ({n_channels})"
 
@@ -68,9 +68,8 @@ class TiffStack():
         if not main_path.exists():
             init_memory() 
 
-        self.params = check_params(self.stack_type)
-        save_TiffStack(self.path, self.name, self.stack_type, self.arr, self.params)
-        
+        self.params = load_params(self.stacktype)
+        self.save_TiffStack()
 
     def _get_name(self):
         """
@@ -82,6 +81,20 @@ class TiffStack():
         base = os.path.basename(self.path)
         stem = os.path.splitext(base)[0]
         return stem
+    
+    def save_TiffStack(self):
+        """
+        Saves TiffStack object into the "Optical Flow" folder.
+
+        Args:
+            None
+        
+        Returns:
+            None, just saves the object.
+        """
+        save_types(self.stacktype, self.params)
+        save_meta(self.path, self.stacktype, self.name)
+        save_arr(self.name, self.arr)
     
     def isolate_channel(self, channel_idx : int):
         """
