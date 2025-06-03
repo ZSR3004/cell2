@@ -101,8 +101,13 @@ def save_type(stacktype : str, **kwargs):
 
     params = {'process' : process, 'flow' : flow, 'trajectory' : trajectory}
 
+    with open(types_path, 'r') as f:
+        types = json.load(f)
+
+    types[stacktype] = params
+
     with open(types_path, 'w') as f:
-        json.dump(params, f, indent=2)
+        json.dump(types, f, indent=2)
 
 def save_meta(path : str, stacktype : str, name : str):
     """
