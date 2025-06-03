@@ -1,5 +1,4 @@
 import matplotlib.pyplot as plt
-import matplotlib.animation as animation
 import numpy as np
 import cv2
 
@@ -50,7 +49,7 @@ def show_image(image : np.array, title='Image', figsize=(12, 8)):
     plt.show()
 
 def create_optical_flow_video(name : str, arr : np.array, og_arr : np.array, 
-                              step : int = 20, scale : int = 1, fps : int = 10, figsize : (int, int) = (12,8),
+                              step : int = 20, scale : int = 1, fps : int = 10, figsize : int | int = (12,8),
                               title : str = None, flag : str = None):
     """
     Creates a video of optical flow vectors overlaid on the original image frames. 
@@ -91,20 +90,20 @@ def create_optical_flow_video(name : str, arr : np.array, og_arr : np.array,
     else:
         ax.set_title(f'title Frame 0')
 
-    def update(frame):
-        img_disp.set_data(og_arr[frame])
-        U = arr[frame, ::step, ::step, 0]
-        V = arr[frame, ::step, ::step, 1]
-        quiver.set_UVC(U, V)
-        if title == None:
-            ax.set_title(f'Frame {frame}')
-        else:
-            ax.set_title(f'{title} Frame {frame}')
-        return img_disp, quiver
-
-    ani = animation.FuncAnimation(fig, update, frames=T_minus_1, blit=False)
-    Writer = animation.writers['ffmpeg']
-    writer = Writer(fps=fps, metadata=dict(artist='Optical Flow'), bitrate=1800)
-    ani.save(output_file, writer=writer)
+    if flag != "":
+        save_video(name, flag, 
+                   {
+                          'img_disp': img_disp,
+                          'arr': arr,
+                          'og_arr': og_arr,
+                          'step': step,
+                          'fps': fps,
+                          'figsize': figsize,
+                          'title': title,
+                          'quiver': quiver,
+                          'ax': ax,
+                          'fig': fig,
+                          'T_minus_1': T_minus_1
+                   })
 
     plt.close(fig)
