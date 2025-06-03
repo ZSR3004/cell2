@@ -126,7 +126,7 @@ def save_flow_traj(name : str, arr : np.array, flag : str):
     if flag not in ['flow', 'trajectory']:
         raise ValueError(f"Unknown flag: {flag}. Expected 'flow' or 'trajectory'.")
     
-    output_file = get_out_path(name:, flag)
+    output_file = get_out_path(name, flag)
     np.save(output_file, arr)
 
 save_flow = lambda flow_arr: save_flow_traj(flow_arr, 'f')
