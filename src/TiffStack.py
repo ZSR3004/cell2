@@ -70,7 +70,8 @@ class TiffStack():
 
         self.params = load_params(self.stacktype)
         self.save_TiffStack()
-
+    
+    @classmethod
     def _get_name(self):
         """
         Generates a name for the TiffStack based on the file name.
@@ -82,6 +83,7 @@ class TiffStack():
         stem = os.path.splitext(base)[0]
         return stem
     
+    @classmethod
     def save_TiffStack(self):
         """
         Saves TiffStack object into the "Optical Flow" folder.
