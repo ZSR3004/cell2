@@ -7,7 +7,7 @@ from scipy.ndimage import gaussian_laplace
 import time
 import os
 from .Memory import *
-from .TiffVisualize import show_flow, show_image, save_optical_flow_video
+from .TiffVisualize import show_flow, show_image
 
 class TiffStack():
     def __init__(self, path, stacktype, name = None, n_channels = 3, dtype = np.uint16):
@@ -58,7 +58,6 @@ class TiffStack():
         self.params = load_params(self.stacktype)
         self.save_TiffStack()
     
-    @classmethod
     def _get_name(self):
         """
         Generates a name for the TiffStack based on the file name.
@@ -70,7 +69,6 @@ class TiffStack():
         stem = os.path.splitext(base)[0]
         return stem
     
-    @classmethod
     def save_TiffStack(self):
         """
         Saves TiffStack object into the "Optical Flow" folder.
