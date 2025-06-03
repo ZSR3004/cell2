@@ -94,7 +94,7 @@ class TiffStack():
         Returns:
             None, just saves the object.
         """
-        save_types(self.stacktype, self.params)
+        save_type(self.stacktype, self.params)
         save_meta(self.path, self.stacktype, self.name)
         save_arr(self.name, self.arr)
     
