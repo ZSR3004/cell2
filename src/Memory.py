@@ -106,9 +106,10 @@ def save_meta(path : str, stacktype : str, name : str):
         None: Just saves the metadata to the specified path.
     """
     meta = {'path' : path, 'stacktype' : stacktype, 'name' : name}
-    with open(main_path / name / 'meta.json', 'w') as f:
+    meta_path = main_path / name
+    meta_path.mkdir(parents=True, exist_ok=True)
+    with open(meta_path / 'meta.json', 'w') as f:
         json.dump(meta, f, indent=2)
-    
 
 def save_arr(name : str, arr : np.array):
     """
@@ -120,7 +121,7 @@ def save_arr(name : str, arr : np.array):
     Returns:
         None: Just saves the array to a file.
     """
-    pass
+    np.save(main_path / name, arr)
 
 def save_flow_traj(name : str, arr : np.array, flag : str):
     """
