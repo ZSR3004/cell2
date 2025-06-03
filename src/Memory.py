@@ -1,14 +1,11 @@
-import numpy as np
 import os
 from pathlib import Path
 import json
-import re
-import cv2
+import numpy as np
+import matplotlib.animation as animation
+from .Defaults import default_process, default_flow, default_trajectory
 
-# for now, we will use the current working directory; I need to get confirmation as to where 
-# Professor M wants the files to be stored
-main_path = Path.cwd() / "OpticalFlow"
-# main_path = Path.home() / "Desktop" / "OpticalFlow"
+main_path = Path.cwd() / "CellFlow" # update this to make it desktop
 types_path = main_path / "types.json"
 
 def init_memory():
@@ -17,6 +14,11 @@ def init_memory():
 
     This creates a main folder 'OpticalFlow' on the user's Desktop, along with a 'types.json'
     file if it doesn't already exist.
+
+    You can find a detailed description of this directory's structure under the README on Github.
+
+    Args:
+        None
 
     Returns:
         None
@@ -30,131 +32,193 @@ def init_memory():
     except Exception as e:
         print(f"[ERROR] Failed to initialize memory: {e}")
 
-def save_flow(name, arr):
+def get_out_path(name : str, flag : str):
     """
-    Saves the optical flow np array in a directory named after `name + '_flow'`,
-    and automatically increments the filename to avoid overwriting.
+    Constructs the output path for saving files based on the provided name and flag.
+
+    Args:
+        name (str): The name of the file to be saved.
+        flag (str): A flag indicating the type of file.
+            - 'f': Flow file (np array)
+            - 't': Trajectory file (np array)
+            - 'vf': Video of flow vectors (mp4)
+            - 'vt': Video of trajectory (mp4)
+
+    Returns:
+        str: The full path where the file will be saved.
     """
-    save_dir = main_path / name / 'flow'
-    save_dir.mkdir(parents=True, exist_ok=True)
+    if flag == 'f':
+        designation = 'flow'
+        file_end = '.npy'
+    elif flag == 't':
+        designation = 'trajectory'
+        file_end = '.npy'
+    elif flag == 'vf' or flag == 'vt':
+        designation = 'video'
+        file_end = '.mp4'
+    else:
+        raise ValueError(f"Unknown flag: {flag}. Expected 'f', 't', 'vf', or 'vt'.")
+
+    save_dir = main_path / name / designation
+    if not save_dir.exists():
+        save_dir.mkdir(parents=True, exist_ok=True)
+
     i = 0
     while True:
-        file_name = f"{name}_flow_{i}.npz"
+        file_name = f"{name}_{flag}{i}{file_end}"
         file_path = save_dir / file_name
         if not file_path.exists():
-            np.save(file_path, arr)
-            break
+            return file_path
         i += 1
 
-def load_flow(name):
+# saving
+def save_type(stacktype : str, params : dict):
     """
-    Loads the optical flow np array from a directory named after `name + '_flow'`.
+    Saves the type of stack to the types.json file.
     
     Args:
-        name (str): The base name of the flow file to load.
+        stacktype (str): The type of stack to save.
+        **kwargs: Additional keyword arguments that can include:
+            - process: parameters for preprocessing the stack.
+            - flow: parameters for optical flow calculation.
+            - trajectory: parameters for trajectory calculation.
+    
+    Returns:
+        None: Just saves the type to the types.json file.
+    """
+    with open(types_path, 'r') as f:
+        types = json.load(f)
+
+    types[stacktype] = params
+
+    with open(types_path, 'w') as f:
+        json.dump(types, f, indent=2)
+
+def save_meta(path : str, stacktype : str, name : str):
+    """
+    Saves metadata about the stack to a JSON file.
+    Args:
+        path (str): The path where the metadata file will be saved.
+        stacktype (str): The type of the stack.
+        name (str): The name of the stack.
 
     Returns:
-        np.ndarray: The loaded optical flow array.
-    
-    Raises:
-        FileNotFoundError: If no flow file exists for the given name.
+        None: Just saves the metadata to the specified path.
     """
-    save_dir = main_path / name / 'flow'
-    if not save_dir.exists():
-        raise FileNotFoundError(f"No flow files found for {name}.")
-    
-    files = list(save_dir.glob(f"{name}_flow_*.npz"))
-    if not files:
-        raise FileNotFoundError(f"No flow files found for {name}.")
-    
-    # Sort files by modification time, newest first
-    files.sort(key=lambda f: f.stat().st_mtime, reverse=True)
-    return np.load(files[0])['arr_0']
+    meta = {'path' : path, 'stacktype' : stacktype, 'name' : name}
+    meta_path = main_path / name
+    meta_path.mkdir(parents=True, exist_ok=True)
+    with open(meta_path / 'meta.json', 'w') as f:
+        json.dump(meta, f, indent=2)
 
-
-def save_params(stack_type, params):
+def save_arr(name : str, arr : np.array):
     """
-    Saves the parameters for a given stack type to a JSON file.
+    Saves a numpy array to a file.
+    
+    Args:
+        arr (np.array): The numpy array to save.
+    
+    Returns:
+        None: Just saves the array to a file.
+    """
+    np.save(main_path / name, arr)
+
+def save_flow_traj(name : str, arr : np.array, flag : str):
+    """
+    Saves the optical flow or trajectory array to a file based on the flag.
+    
+    Args:
+        arr (np.array): The optical flow or trajectory array to save, expected to be of shape (T, H, W, 2)
+            where T is the number of frames, H is height, W is width, and the last dimension contains
+            the flow vectors (dx, dy) or trajectory vectors.
+        flag (str): A flag indicating whether to save as 'flow' or 'trajectory'.
+    
+    Returns:
+        None: Just saves the array to a file.
+    """
+    if flag not in ['f', 't', 'vf', 'vt']:
+        raise ValueError(f"Unknown flag: {flag}. Expected 'f', 't', 'vf', or 'vt'.")
+    
+    output_file = get_out_path(name, flag)
+    np.save(output_file, arr)
+
+save_flow = lambda name, flow_arr: save_flow_traj(name, flow_arr, 'f')
+save_trajectory = lambda name, trajectory_arr: save_flow_traj(name, trajectory_arr, 't')
+
+def save_video(name : str, flag : str, **kwargs):
+    """
+    Creates a video of optical flow vectors overlaid on the original image frames.
 
     Args:
-        stack_type (str): The type of the stack.
-
+        name (str): Name of the video file to save.
+        flag (str): Flag to determine the type of video being saved.
+        **kwargs: Additional keyword arguments that include:
+            - img_disp (matplotlib.image.AxesImage): Image display object for the original frames.
+            - arr (np.ndarray): Optical flow array of shape (T, H, W, 2) where T is the number of frames,
+                H is height, W is width, and the last dimension contains the flow vectors (dx, dy).
+            - og_arr (np.ndarray): Original image frames array of shape (T, H, W, C).
+            - step (int): Step size for downsampling the flow vectors for visualization.
+            - fps (int): Frames per second for the video.
+            - figsize (tuple): Figure size in inches (width, height).
+            - title (str): Title of the video.
+            - quiver (matplotlib.quiver.Quiver): Quiver object for displaying flow vectors.
+            - ax (matplotlib.axes.Axes): Axes object for the plot.
+            - fig (matplotlib.figure.Figure): Figure object for the plot.
+            - T_minus_1 (int): Total number of frames minus one.
     Returns:
-        None: The function saves the parameters to 'types.json'.
-    
-    Raises:
-        ValueError: If the stack type is not recognized.
+        None: Just saves the video to the specified path.
+
+    Invariant:
+        Assumes, that all values are present in kwargs and are of the correct type. The check occurs in the
+        `create_optical_flow_video` function (in TiffVisualize.py) before this function is called.
     """
-    params = check_params(stack_type)
+    img_disp = kwargs.get('img_disp', None)
+    arr = kwargs.get('arr', None)
+    og_arr = kwargs.get('og_arr', None)
+    step = kwargs.get('step', None)
+    fps = kwargs.get('fps', None)
+    figsize = kwargs.get('figsize', None)
+    title = kwargs.get('title', None)
+    quiver = kwargs.get('quiver', None)
+    ax = kwargs.get('ax', None)
+    fig = kwargs.get('fig', None)
+    T_minus_1 = kwargs.get('T_minus_1', None)
+
+
+    output_file = get_out_path(name, flag)
+    def update(frame):
+        img_disp.set_data(og_arr[frame])
+        U = arr[frame, ::step, ::step, 0]
+        V = arr[frame, ::step, ::step, 1]
+        quiver.set_UVC(U, V)
+        if title == None:
+            ax.set_title(f'Frame {frame}')
+        else:
+            ax.set_title(f'{title} Frame {frame}')
+        return img_disp, quiver
     
-    with open(types_path, "r") as f:
+    
+    ani = animation.FuncAnimation(fig, update, frames=T_minus_1, blit=False)
+    Writer = animation.writers['ffmpeg']
+    writer = Writer(fps=fps, metadata=dict(artist='Optical Flow'), bitrate=1800)
+    ani.save(output_file, writer=writer)
+
+def load_params(stacktype : str):
+    """
+    Loads parameters from types.json.
+
+    Args:
+        stacktype: The type of cell.
+    
+    Returns:
+        params: Dictionary of parameters.
+    """
+    with open(types_path, 'r') as f:
         types = json.load(f)
     
-    if stack_type not in types:
-        types[stack_type] = params
-        with open(types_path, "w") as f:
-            json.dump(types, f, indent=2)
+    if stacktype not in types:
+        params = {'process' : default_process, 'flow' : default_flow, 'trajectory' : default_trajectory}
+    else:
+        params = types[stacktype]
 
-def check_params(stack_type):
-    """
-    Checks if the stack type is valid and returns the corresponding parameters.
-
-    Args:
-        stack_type (str): The type of the stack.
-
-    Returns:
-        dict: Parameters corresponding to the stack type.
-    
-    Raises:
-        ValueError: If the stack type is not recognized.
-    """
-    with open(types_path, "r") as f:
-        types = json.load(f)
-    
-    if stack_type not in types:
-        types[stack_type] = { 'opt_flow': {      'pyr_scale' : 0.5,
-                                                    'levels' : 3,
-                                                    'winsize' : 15,
-                                                    'iterations' : 3,
-                                                    'poly_n' : 5,
-                                                    'poly_sigma' : 1.2,
-                                                    'flag' : 0},
-                                'process_args' : {  'gauss' : {'ksize': (5, 5), 'sigmaX': 1.5},
-                                                    'median': {'ksize': 5},
-                                                    'normalize': {'alpha': 0, 'beta': 255, 'norm_type': cv2.NORM_MINMAX},
-                                                    'flags' : ['laplace']
-                                }}
-        with open(types_path, "w") as f:
-            json.dump(types, f, indent=2)
-    return types[stack_type]
-
-
-def save_TiffStack(path, name, stack_type, arr, params):
-    """
-    Saves a TiffStack image to the OpticalFlow directory.
-
-    Args:
-        img (TiffStack): The TiffStack image object to save.
-
-    Returns:
-        None: The function saves the image and its metadata to a JSON file.
-        """
-    save_params(stack_type, params)
-
-    file_path = main_path / name
-    
-    data = {
-        "path": path,
-        "stack_type": stack_type,
-        "name": name
-    }
-
-    os.makedirs(file_path, exist_ok=True)
-    meta_path = file_path / 'meta.json'
-    np_path = file_path / 'arr.npy'
-
-    with open(meta_path, 'w') as f:
-        json.dump(data, f, indent=2)
-    np.save(np_path, arr)
-
-
+    return params

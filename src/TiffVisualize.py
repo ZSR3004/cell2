@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
-import matplotlib.animation as animation
 import numpy as np
 import cv2
+from .Memory import save_video
 
 def show_flow(flow : np.array, title='Optical Flow'):
     """
@@ -49,47 +49,62 @@ def show_image(image : np.array, title='Image', figsize=(12, 8)):
     plt.axis('off')
     plt.show()
 
-def save_optical_flow_video(optical_flow : np.array, image_stack : np.array, 
-                            output_file, step=20, scale=1, fps=10):
+def create_optical_flow_video(name : str, arr : np.array, og_arr : np.array, 
+                              step : int = 20, scale : int = 1, fps : int = 10, figsize : int | int = (12,8),
+                              title : str = None, flag : str = None):
     """
-    Saves an MP4 video showing optical flow vector fields over time.
-    
+    Creates a video of optical flow vectors overlaid on the original image frames. 
+
     Args:
-        - optical_flow: np.ndarray of shape (T-1, H, W, 2)
-        - image_stack: np.ndarray of shape (T, H, W)
-        - step: int, grid spacing for arrows
-        - scale: float, scale factor for quiver arrows
-        - output_file: str, name of the output MP4 file
-        - fps: int, frames per second for the video
-    
+        name (str): Name of the video file to save.
+        arr (np.ndarray): Optical flow array of shape (T, H, W, 2) where T is the number of frames,
+                          H is height, W is width, and the last dimension contains the flow vectors (dx, dy).
+        og_arr (np.ndarray): Original image frames of shape (T, H, W, C) where C is the number of channels.
+        step (int): Step size for downsampling the flow vectors for visualization. Default is 20.
+        scale (int): Scale factor for the quiver arrows. Default is 1.
+        fps (int): Frames per second for the video. Default is 10.
+        figsize (tuple): Size of the figure in inches. Default is (12, 8).
+        title (str): Title for the video frames. Default is None.
+        flag (str): Video type flag. Valid values are empty string, 'f' for optical flow, or 't' for trajectories.
+                    The empty string is used to denote you don't want the video saved.
+        
     Returns:
-        None, saves the video to the specified output file.
+        None: Just saves displays the video and saves it if desired.
     
     TODO:
         - Make more visible by changing color, vector sizes, etc.
     """
-    T_minus_1, H, W, _ = optical_flow.shape
+    if flag != "" or flag != 'f' or flag != 't':
+        raise ValueError('Invalid video type. Valid types are emoty quotes, an l or a t.')
+
+    T_minus_1, H, W, _ = arr.shape
     Y, X = np.mgrid[0:H:step, 0:W:step]
 
-    fig, ax = plt.subplots(figsize=(12, 8))
-    img_disp = ax.imshow(image_stack[0], cmap='gray', origin='upper')
-    quiver = ax.quiver(X, Y, optical_flow[0, ::step, ::step, 0],
-                             optical_flow[0, ::step, ::step, 1],
-                             color='red', angles='xy', scale_units='xy', scale=scale)
+    fig, ax = plt.subplots(figsize=figsize)
+    img_disp = ax.imshow(og_arr[0], cmap='gray', origin='upper')
+    quiver = ax.quiver(X, Y, arr[0, ::step, ::step, 0],
+                             arr[0, ::step, ::step, 1],
+                              color='red', angles='xy', scale_units='xy', scale=scale)
     ax.axis('off')
-    ax.set_title('Optical Flow Frame 0')
+    if title == None:
+        ax.set_title('Frame 0')
+    else:
+        ax.set_title(f'title Frame 0')
 
-    def update(frame):
-        img_disp.set_data(image_stack[frame])
-        U = optical_flow[frame, ::step, ::step, 0]
-        V = optical_flow[frame, ::step, ::step, 1]
-        quiver.set_UVC(U, V)
-        ax.set_title(f'Optical Flow Frame {frame}')
-        return img_disp, quiver
-
-    ani = animation.FuncAnimation(fig, update, frames=T_minus_1, blit=False)
-    Writer = animation.writers['ffmpeg']
-    writer = Writer(fps=fps, metadata=dict(artist='Optical Flow'), bitrate=1800)
-    ani.save(output_file, writer=writer)
+    if flag != "":
+        save_video(name, flag, 
+                   {
+                          'img_disp': img_disp,
+                          'arr': arr,
+                          'og_arr': og_arr,
+                          'step': step,
+                          'fps': fps,
+                          'figsize': figsize,
+                          'title': title,
+                          'quiver': quiver,
+                          'ax': ax,
+                          'fig': fig,
+                          'T_minus_1': T_minus_1
+                   })
 
     plt.close(fig)
