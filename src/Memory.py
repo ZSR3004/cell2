@@ -86,12 +86,6 @@ def save_type(stacktype : str, **kwargs):
     Returns:
         None: Just saves the type to the types.json file.
     """
-    process = kwargs.get('process', default_process)
-    flow = kwargs.get('flow', default_flow)
-    trajectory = kwargs.get('trajectory', default_trajectory)
-
-    params = {'process' : process, 'flow' : flow, 'trajectory' : trajectory}
-
     with open(types_path, 'r') as f:
         types = json.load(f)
 
