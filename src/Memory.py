@@ -72,7 +72,7 @@ def get_out_path(name : str, flag : str):
         i += 1
 
 # saving
-def save_type(stacktype : str, **kwargs):
+def save_type(stacktype : str, params : dict):
     """
     Saves the type of stack to the types.json file.
     
