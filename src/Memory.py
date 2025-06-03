@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.animation as animation
 from .Defaults import default_process, default_flow, default_trajectory
 
-main_path = Path.home() / "Desktop" / "cell_flow"
+main_path = Path.home() / "Desktop" / "cell_flow" # update this to make it dynamic
 types_path = main_path / "types.json"
 
 def init_memory():
