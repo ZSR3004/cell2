@@ -49,42 +49,41 @@ def show_image(image : np.array, title='Image', figsize=(12, 8)):
     plt.axis('off')
     plt.show()
 
-def save_optical_flow_video(optical_flow : np.array, image_stack : np.array, 
-                            output_file, step=20, scale=1, fps=10):
+def create_optical_flow_video(name : str, arr : np.array, og_arr : np.array, 
+                              step : int = 20, scale : int = 1, fps : int = 10, figsize : (int, int) = (12,8),
+                              title : str = None, flag : str = None):
     """
-    Saves an MP4 video showing optical flow vector fields over time.
-    
-    Args:
-        - optical_flow: np.ndarray of shape (T-1, H, W, 2)
-        - image_stack: np.ndarray of shape (T, H, W)
-        - step: int, grid spacing for arrows
-        - scale: float, scale factor for quiver arrows
-        - output_file: str, name of the output MP4 file
-        - fps: int, frames per second for the video
-    
-    Returns:
-        None, saves the video to the specified output file.
+
     
     TODO:
         - Make more visible by changing color, vector sizes, etc.
     """
-    T_minus_1, H, W, _ = optical_flow.shape
+    if flag != "" or flag != 'f' or flag != 't':
+        raise ValueError('Invalid video type. Valid types are emoty quotes, an l or a t.')
+
+    T_minus_1, H, W, _ = arr.shape
     Y, X = np.mgrid[0:H:step, 0:W:step]
 
-    fig, ax = plt.subplots(figsize=(12, 8))
-    img_disp = ax.imshow(image_stack[0], cmap='gray', origin='upper')
-    quiver = ax.quiver(X, Y, optical_flow[0, ::step, ::step, 0],
-                             optical_flow[0, ::step, ::step, 1],
-                             color='red', angles='xy', scale_units='xy', scale=scale)
+    fig, ax = plt.subplots(figsize=figsize)
+    img_disp = ax.imshow(og_arr[0], cmap='gray', origin='upper')
+    quiver = ax.quiver(X, Y, arr[0, ::step, ::step, 0],
+                             arr[0, ::step, ::step, 1],
+                              color='red', angles='xy', scale_units='xy', scale=scale)
     ax.axis('off')
-    ax.set_title('Optical Flow Frame 0')
+    if title == None:
+        ax.set_title('Frame 0')
+    else:
+        ax.set_title(f'title Frame 0')
 
     def update(frame):
-        img_disp.set_data(image_stack[frame])
-        U = optical_flow[frame, ::step, ::step, 0]
-        V = optical_flow[frame, ::step, ::step, 1]
+        img_disp.set_data(og_arr[frame])
+        U = arr[frame, ::step, ::step, 0]
+        V = arr[frame, ::step, ::step, 1]
         quiver.set_UVC(U, V)
-        ax.set_title(f'Optical Flow Frame {frame}')
+        if title == None:
+            ax.set_title(f'Frame {frame}')
+        else:
+            ax.set_title(f'{title} Frame {frame}')
         return img_disp, quiver
 
     ani = animation.FuncAnimation(fig, update, frames=T_minus_1, blit=False)
