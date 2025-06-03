@@ -85,6 +85,24 @@ def save_type(stacktype : str, **kwargs):
     Returns:
         None: Just saves the type to the types.json file.
     """
+    process = kwargs.get('process', {'gauss' : {'ksize': (5, 5), 'sigmaX': 1.5},
+                                     'median': {'ksize': 5},
+                                     'normalize': {'alpha': 0, 'beta': 255, 'norm_type': cv2.NORM_MINMAX},
+                                     'flags' : ['laplace']})
+
+    flow = kwargs.get('flow', {'pyr_scale' : 0.5,
+                                'levels' : 3,
+                                'winsize' : 15,
+                                'iterations' : 3,
+                                'poly_n' : 5,
+                                'poly_sigma' : 1.2,
+                                'flag' : 0})
+    trajectory = kwargs.get('trajectory', {}) # empty until trajectory is properly implemented
+
+    params = {'process' : process, 'flow' : flow, 'trajectory' : trajectory}
+
+    with open(types_path, 'w') as f:
+        json.dump(params, f, indent=2)
 
 def save_meta(path : str, stacktype : str, name : str):
     """
@@ -97,6 +115,10 @@ def save_meta(path : str, stacktype : str, name : str):
     Returns:
         None: Just saves the metadata to the specified path.
     """
+    meta = {'path' : path, 'stacktype' : stacktype, 'name' : name}
+    with open(main_path / name / 'meta.json', 'w') as f:
+        json.dump(meta, f, indent=2)
+    
 
 def save_arr(name : str, arr : np.array):
     """
