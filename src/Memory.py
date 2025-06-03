@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 import json
+import numpy as np
 
 main_path = Path.home() / "Desktop" / "Cell Flow Tracking"
 types_path = main_path / "types.json"
@@ -30,36 +31,33 @@ def init_memory():
         print(f"[ERROR] Failed to initialize memory: {e}")
 
 # saving
-def save_type():
+def save_type(  stacktype : str, **kwargs):
     pass
 
-def save_meta():
+def save_meta(path : str, stacktype : str, name : str):
     pass
 
-def save_arr():
+def save_arr(arr : np.array):
     pass
 
-def save_flow():
+def save_flow(flow_arr : np.array):
     pass
 
-def save_trajectory():
+def save_trajectory(trajectory_arr : np.array):
     pass
 
 def save_video():
     pass
 
 # loading
-def load_type():
+def load_type(stacktype : str):
     pass
 
-def load_meta():
+def load_arr(arr : np.array):
     pass
 
-def load_arr():
+def load_flow(flow_arr : np.array):
     pass
 
-def load_flow():
-    pass
-
-def load_trajectory():
+def load_trajectory(trajectory_arr : np.array):
     pass
