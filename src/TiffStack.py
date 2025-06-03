@@ -151,26 +151,26 @@ class TiffStack():
             None
         Returns:
             np.ndarray: (N-1, H, W, 2) flow vectors between frames."""
-        opt_flow = self.params['opt_flow']
-        process_args = self.params['process_args']
+        flow = self.params['flow']
+        process = self.params['process']
         flow_2 = self.experiment_optical_flow(1,
-                                            opt_flow['pyr_scale'],
-                                            opt_flow['levels'],
-                                            opt_flow['winsize'],
-                                            opt_flow['iterations'],
-                                            opt_flow['poly_n'],
-                                            opt_flow['poly_sigma'],
-                                            opt_flow['flag'],
-                                            **process_args)
+                                            flow['pyr_scale'],
+                                            flow['levels'],
+                                            flow['winsize'],
+                                            flow['iterations'],
+                                            flow['poly_n'],
+                                            flow['poly_sigma'],
+                                            flow['flag'],
+                                            **process)
         flow_3 = self.experiment_optical_flow(2,
-                                            opt_flow['pyr_scale'],
-                                            opt_flow['levels'],
-                                            opt_flow['winsize'],
-                                            opt_flow['iterations'],
-                                            opt_flow['poly_n'],
-                                            opt_flow['poly_sigma'],
-                                            opt_flow['flag'],
-                                            **process_args)
+                                            flow['pyr_scale'],
+                                            flow['levels'],
+                                            flow['winsize'],
+                                            flow['iterations'],
+                                            flow['poly_n'],
+                                            flow['poly_sigma'],
+                                            flow['flag'],
+                                            **process)
         
         sum_arr = flow_2 + flow_3
         combined = np.stack([sum_arr, flow_2, flow_3], axis=1)
