@@ -53,7 +53,23 @@ def create_optical_flow_video(name : str, arr : np.array, og_arr : np.array,
                               step : int = 20, scale : int = 1, fps : int = 10, figsize : (int, int) = (12,8),
                               title : str = None, flag : str = None):
     """
+    Creates a video of optical flow vectors overlaid on the original image frames. 
 
+    Args:
+        name (str): Name of the video file to save.
+        arr (np.ndarray): Optical flow array of shape (T, H, W, 2) where T is the number of frames,
+                          H is height, W is width, and the last dimension contains the flow vectors (dx, dy).
+        og_arr (np.ndarray): Original image frames of shape (T, H, W, C) where C is the number of channels.
+        step (int): Step size for downsampling the flow vectors for visualization. Default is 20.
+        scale (int): Scale factor for the quiver arrows. Default is 1.
+        fps (int): Frames per second for the video. Default is 10.
+        figsize (tuple): Size of the figure in inches. Default is (12, 8).
+        title (str): Title for the video frames. Default is None.
+        flag (str): Video type flag. Valid values are empty string, 'f' for optical flow, or 't' for trajectories.
+                    The empty string is used to denote you don't want the video saved.
+        
+    Returns:
+        None: Just saves displays the video and saves it if desired.
     
     TODO:
         - Make more visible by changing color, vector sizes, etc.
