@@ -136,14 +136,14 @@ def save_flow_traj(name : str, arr : np.array, flag : str):
     Returns:
         None: Just saves the array to a file.
     """
-    if flag not in ['flow', 'trajectory']:
-        raise ValueError(f"Unknown flag: {flag}. Expected 'flow' or 'trajectory'.")
+    if flag not in ['f', 't', 'vf', 'vt']:
+        raise ValueError(f"Unknown flag: {flag}. Expected 'f', 't', 'vf', or 'vt'.")
     
     output_file = get_out_path(name, flag)
     np.save(output_file, arr)
 
-save_flow = lambda flow_arr: save_flow_traj(flow_arr, 'f')
-save_trajectory = lambda trajectory_arr: save_flow_traj(trajectory_arr, 't')
+save_flow = lambda name, flow_arr: save_flow_traj(name, flow_arr, 'f')
+save_trajectory = lambda name, trajectory_arr: save_flow_traj(name, trajectory_arr, 't')
 
 def save_video(name : str, flag : str, **kwargs):
     """
