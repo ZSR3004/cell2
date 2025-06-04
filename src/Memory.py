@@ -189,7 +189,11 @@ def save_video(name : str, flag : str, **kwargs):
     T_minus_1 = kwargs.get('T_minus_1', None)
 
 
-    output_file = get_out_path(name, flag)
+    if flag[0] not in ['f', 't']:
+        raise ValueError(f'Invalid flag. Expected f or t, but got {flag}')
+
+    # implement rest here
+    
     def update(frame):
         img_disp.set_data(og_arr[frame])
         U = arr[frame, ::step, ::step, 0]
