@@ -124,7 +124,8 @@ def save_trajectory(name : str, ftag : str, arr : np.array):
         None: Just saves the array to a file.
     """
     save_dir = main_path / name / 'trajectory'
-    save_dir.mkdir(parents=True, exist_ok=True)
+    if not save_dir.exists():
+        save_dir.mkdir(parents=True, exist_ok=True)
 
     def number_to_tag(number):
         tag = ''
@@ -188,11 +189,20 @@ def save_video(name : str, flag : str, **kwargs):
     fig = kwargs.get('fig', None)
     T_minus_1 = kwargs.get('T_minus_1', None)
 
-
     if flag[0] not in ['f', 't']:
         raise ValueError(f'Invalid flag. Expected f or t, but got {flag}')
 
-    # implement rest here
+    save_dir = main_path / name / 'video'
+    if not save_dir.exists():
+        save_dir.mkdir(parents=True, exist_ok=True)
+
+    i = 0
+    while True:
+        file_name = f"{name}_v{flag}_{i}.mp4"
+        file_path = save_dir / file_name
+        if not file_path.exists():
+            break
+        i += 1
     
     def update(frame):
         img_disp.set_data(og_arr[frame])
@@ -209,7 +219,7 @@ def save_video(name : str, flag : str, **kwargs):
     ani = animation.FuncAnimation(fig, update, frames=T_minus_1, blit=False)
     Writer = animation.writers['ffmpeg']
     writer = Writer(fps=fps, metadata=dict(artist='Optical Flow'), bitrate=1800)
-    ani.save(output_file, writer=writer)
+    ani.save(file_path, writer=writer)
 
 def load_params(stacktype : str):
     """
