@@ -31,46 +31,7 @@ def init_memory():
     
     except Exception as e:
         print(f"[ERROR] Failed to initialize memory: {e}")
-
-def get_out_path(name : str, flag : str):
-    """
-    Constructs the output path for saving files based on the provided name and flag.
-
-    Args:
-        name (str): The name of the file to be saved.
-        flag (str): A flag indicating the type of file.
-            - 'f': Flow file (np array)
-            - 't': Trajectory file (np array)
-            - 'vf': Video of flow vectors (mp4)
-            - 'vt': Video of trajectory (mp4)
-
-    Returns:
-        str: The full path where the file will be saved.
-    """
-    if flag == 'f':
-        designation = 'flow'
-        file_end = '.npy'
-    elif flag == 't':
-        designation = 'trajectory'
-        file_end = '.npy'
-    elif flag == 'vf' or flag == 'vt':
-        designation = 'video'
-        file_end = '.mp4'
-    else:
-        raise ValueError(f"Unknown flag: {flag}. Expected 'f', 't', 'vf', or 'vt'.")
-
-    save_dir = main_path / name / designation
-    if not save_dir.exists():
-        save_dir.mkdir(parents=True, exist_ok=True)
-
-    i = 0
-    while True:
-        file_name = f"{name}_{flag}{i}{file_end}"
-        file_path = save_dir / file_name
-        if not file_path.exists():
-            return file_path
-        i += 1
-
+   
 # saving
 def save_type(stacktype : str, params : dict):
     """
@@ -123,27 +84,31 @@ def save_arr(name : str, arr : np.array):
     """
     np.save(main_path / name, arr)
 
-def save_flow_traj(name : str, arr : np.array, flag : str):
+def save_flow(name : str, arr : np.array):
     """
-    Saves the optical flow or trajectory array to a file based on the flag.
+    Saves the optical flow array.
     
     Args:
+        name (str): The name of the file.
         arr (np.array): The optical flow or trajectory array to save, expected to be of shape (T, H, W, 2)
             where T is the number of frames, H is height, W is width, and the last dimension contains
             the flow vectors (dx, dy) or trajectory vectors.
-        flag (str): A flag indicating whether to save as 'flow' or 'trajectory'.
     
     Returns:
         None: Just saves the array to a file.
     """
-    if flag not in ['f', 't', 'vf', 'vt']:
-        raise ValueError(f"Unknown flag: {flag}. Expected 'f', 't', 'vf', or 'vt'.")
-    
-    output_file = get_out_path(name, flag)
-    np.save(output_file, arr)
 
-save_flow = lambda name, flow_arr: save_flow_traj(name, flow_arr, 'f')
-save_trajectory = lambda name, trajectory_arr: save_flow_traj(name, trajectory_arr, 't')
+    save_dir = main_path / name / designation
+    if not save_dir.exists():
+        save_dir.mkdir(parents=True, exist_ok=True)
+
+    i = 0
+    while True:
+        file_name = f"{name}_{flag}{i}{file_end}"
+        file_path = save_dir / file_name
+        if not file_path.exists():
+            return np.save(file_path, arr)
+        i += 1
 
 def save_video(name : str, flag : str, **kwargs):
     """
