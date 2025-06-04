@@ -8,6 +8,7 @@ import time
 import os
 from .Memory import *
 from .TiffVisualize import show_flow, show_image
+from .Flow import *
 
 class TiffStack():
     def __init__(self, path, stacktype, name = None, n_channels = 3, dtype = np.uint16):
@@ -95,54 +96,6 @@ class TiffStack():
         """
         assert 0 <= channel_idx < self.arr.shape[1], f"Channel index out of range: {channel_idx}"
         return self.arr[:, channel_idx, ...]
-
-    def _preprocess_frame(self, frame: np.ndarray, **kwargs) -> np.ndarray:
-        """
-        Preprocesses a single frame with optional Gaussian/median blurs, normalization,
-        and type conversion.
-
-        Args:
-            frame (np.ndarray): Input image/frame.
-            **kwargs:
-                - laplace (dict): {'sigma': float} for Gaussian Laplace filter
-                - gauss (dict): {'ksize': (int, int), 'sigmaX': float}
-                - median (dict): {'ksize': int}
-                - normalize (dict): {'alpha': int, 'beta': int, 'norm_type': int}
-                - convert (dict): {'dtype': np.dtype}
-                - skip (list[str]): steps to skip (e.g., ['gauss', 'median'])
-
-        Returns:
-            np.ndarray: Preprocessed image.
-        """
-        skip = kwargs.get("skip", [])
-
-        if 'laplace' in skip:
-            laplace_cfg = kwargs.get("laplace", {})
-            sigma = laplace_cfg.get("sigma", 1.0)
-            frame = gaussian_laplace(frame, sigma=sigma)
-
-        if "gauss" not in skip:
-            gauss_cfg = kwargs.get("gauss", {})
-            ksize = gauss_cfg.get("ksize", (5, 5))
-            sigmaX = gauss_cfg.get("sigmaX", 1.5)
-            frame = cv2.GaussianBlur(frame, ksize, sigmaX)
-
-        if "median" not in skip:
-            median_cfg = kwargs.get("median", {})
-            ksize = median_cfg.get("ksize", 5)
-            frame = cv2.medianBlur(frame, ksize)
-
-        if "normalize" not in skip:
-            norm_cfg = kwargs.get("normalize", {})
-            alpha = norm_cfg.get("alpha", 0)
-            beta = norm_cfg.get("beta", 255)
-            norm_type = norm_cfg.get("norm_type", cv2.NORM_MINMAX)
-            frame = cv2.normalize(frame, None, alpha, beta, norm_type)
-
-        if "convert" not in skip:
-            frame = cv2.convertScaleAbs(frame)
-
-        return frame
     
     def optical_flow(self):
         """
@@ -150,10 +103,15 @@ class TiffStack():
         Args:
             None
         Returns:
-            np.ndarray: (N-1, H, W, 2) flow vectors between frames."""
+            np.ndarray: (N-1, H, W, 2) flow vectors between frames.
+        """
         flow = self.params['flow']
         process = self.params['process']
-        flow_2 = self.experiment_optical_flow(1,
+
+        processed_arr2 = np.stack([preprocess_frame(f, **kwargs) for f in self.isolate_channel(1)])
+        processed_arr3 = np.stack([preprocess_frame(f, **kwargs) for f in self.isolate_channel(2)])
+
+        flow_2 = self.experiment_optical_flow(processed_arr2,
                                             flow['pyr_scale'],
                                             flow['levels'],
                                             flow['winsize'],
@@ -162,7 +120,7 @@ class TiffStack():
                                             flow['poly_sigma'],
                                             flow['flag'],
                                             **process)
-        flow_3 = self.experiment_optical_flow(2,
+        flow_3 = self.experiment_optical_flow(processed_arr3,
                                             flow['pyr_scale'],
                                             flow['levels'],
                                             flow['winsize'],
@@ -172,49 +130,6 @@ class TiffStack():
                                             flow['flag'],
                                             **process)
         
-        sum_arr = flow_2 + flow_3
-        combined = np.stack([sum_arr, flow_2, flow_3], axis=1)
+        combined = combine_flows([flow_2, flow_3])
         save_flow(self.name, combined)
         return combined
-
-    def experiment_optical_flow(self, channel_idx : int,
-                     pyr_scale : float = 0.5, 
-                     levels : int = 3, 
-                     winsize : int = 15,
-                     iterations : int = 3, 
-                     poly_n : int = 5, 
-                     poly_sigma : float = 1.2,
-                     flag : int = 0, 
-                     **kwargs):
-        """
-        Computes dense optical flow using Farneback method on a preprocessed channel. Allows manual
-        changes to the params for optical flow.
-
-        Args:
-            channel_idx (int): Channel index from TIFF stack.
-                - pyr_scale: float, scale factor for pyramid
-                - levels: int, number of pyramid levels
-                - winsize: int, size of the window for averaging
-                - iterations: int, number of iterations at each pyramid level
-                - poly_n: int, size of the pixel neighborhood
-                - poly_sigma: float, standard deviation of the Gaussian used for polynomial expansion
-                - flags: int, operation flags
-                - **kwargs: dict with keys for preprocessing (see _preprocess_frame)
-                    
-        Returns:
-            np.ndarray: (N-1, H, W, 2) flow vectors between frames.
-        """ 
-        arr = self.isolate_channel(channel_idx)
-        preprocessed = np.stack([self._preprocess_frame(f, **kwargs) for f in arr])
-        num_frames, h, w = preprocessed.shape
-
-        flow = np.empty((num_frames - 1, h, w, 2), dtype=np.float32)
-        for i in range(num_frames - 1):
-            f1 = preprocessed[i]
-            f2 = preprocessed[i + 1]
-            flow[i] = cv2.calcOpticalFlowFarneback(f1, f2, None,
-                                                   pyr_scale, levels, 
-                                                   winsize, iterations, 
-                                                   poly_n, poly_sigma, 
-                                                   flag)
-        return flow
