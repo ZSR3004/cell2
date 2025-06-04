@@ -14,6 +14,7 @@
 
 ## Project Overview
 
+This README is intended for people who want to _use_ this tool. I'm in the process for writing a manual for contributers who might go in an fix/update things I've written.
 This README is inteded for people who want to contribute/maintain this code. I'm in the process of writing a manual for users who don't need to know the intricacies of how the object is setup. This README doesn't go into massive detail on the implementation (aside from the directory format).
 
 ## Installation
