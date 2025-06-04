@@ -84,6 +84,29 @@ def save_arr(name : str, arr : np.array):
     """
     np.save(main_path / name, arr)
 
+def get_unique_path(name, file_type, pattern_fn):
+    """
+    Generates a unique file path in the given directory based on a naming pattern.
+
+    Args:
+        name (str): Main identifier (e.g., protein name).
+        file_type (str): Subdirectory (e.g., 'flow', 'trajectory').
+        pattern_fn (callable): Function that takes an integer and returns a file name.
+
+    Returns:
+        Path: Unique file path that does not yet exist.
+    """
+    save_dir = main_path / name / file_type
+    save_dir.mkdir(parents=True, exist_ok=True)
+
+    i = 0
+    while True:
+        file_name = pattern_fn(i)
+        file_path = save_dir / file_name
+        if not file_path.exists():
+            return file_path
+        i += 1
+
 def save_flow(name : str, arr : np.array):
     """
     Saves the optical flow array.
@@ -97,17 +120,8 @@ def save_flow(name : str, arr : np.array):
     Returns:
         None: Just saves the array to a file.
     """
-    save_dir = main_path / name / 'flow'
-    if not save_dir.exists():
-        save_dir.mkdir(parents=True, exist_ok=True)
-
-    i = 0
-    while True:
-        file_name = f"{name}_f{i}.npy"
-        file_path = save_dir / file_name
-        if not file_path.exists():
-            return np.save(file_path, arr)
-        i += 1
+    file_path = get_unique_path(name, lambda i: f"{name}_f{i}.npy")
+    np.save(file_path, arr)
 
 def save_trajectory(name : str, ftag : str, arr : np.array):
     """
@@ -123,10 +137,6 @@ def save_trajectory(name : str, ftag : str, arr : np.array):
     Returns:
         None: Just saves the array to a file.
     """
-    save_dir = main_path / name / 'trajectory'
-    if not save_dir.exists():
-        save_dir.mkdir(parents=True, exist_ok=True)
-
     def number_to_tag(number):
         tag = ''
         while True:
@@ -141,14 +151,8 @@ def save_trajectory(name : str, ftag : str, arr : np.array):
         file_path = save_dir / file_name
         return file_path.exists()
 
-    i = 0
-    while True:
-        tag = number_to_tag(i)
-        file_name = f"{name}_t{ftag}{tag}.npy"
-        file_path = save_dir / file_name
-        if not file_path.exists():
-            return np.save(file_path, arr)
-        i += 1
+    file_path = get_unique_path(name, lambda i: f"{name}_t{ftag}{number_to_tag(i)}.npy")
+    np.save(file_path, arr)
 
 def save_video(name : str, flag : str, **kwargs):
     """
@@ -192,17 +196,7 @@ def save_video(name : str, flag : str, **kwargs):
     if flag[0] not in ['f', 't']:
         raise ValueError(f'Invalid flag. Expected f or t, but got {flag}')
 
-    save_dir = main_path / name / 'video'
-    if not save_dir.exists():
-        save_dir.mkdir(parents=True, exist_ok=True)
-
-    i = 0
-    while True:
-        file_name = f"{name}_v{flag}_{i}.mp4"
-        file_path = save_dir / file_name
-        if not file_path.exists():
-            break
-        i += 1
+    file_path = get_unique_path(name, lambda i: f"{name}_v{flag}_{i}.mp4")
     
     def update(frame):
         img_disp.set_data(og_arr[frame])
