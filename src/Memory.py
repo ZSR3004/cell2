@@ -97,14 +97,53 @@ def save_flow(name : str, arr : np.array):
     Returns:
         None: Just saves the array to a file.
     """
-
-    save_dir = main_path / name / designation
+    save_dir = main_path / name / 'flow'
     if not save_dir.exists():
         save_dir.mkdir(parents=True, exist_ok=True)
 
     i = 0
     while True:
-        file_name = f"{name}_{flag}{i}{file_end}"
+        file_name = f"{name}_f{i}.npy"
+        file_path = save_dir / file_name
+        if not file_path.exists():
+            return np.save(file_path, arr)
+        i += 1
+
+def save_trajectory(name : str, ftag : str, arr : np.array):
+    """
+    Saves the trajectory flow array.
+
+    Args:
+        name (str): The name of the file.
+        arr (np.array): The optical flow or trajectory array to save, expected to be of shape (T, H, W, 2)
+        ftag (str): The tag associated with the optical flow file the trajectory was derived from.
+            where T is the number of frames, H is height, W is width, and the last dimension contains
+            the flow vectors (dx, dy) or trajectory vectors.
+    
+    Returns:
+        None: Just saves the array to a file.
+    """
+    save_dir = main_path / name / 'trajectory'
+    save_dir.mkdir(parents=True, exist_ok=True)
+
+    def number_to_tag(number):
+        tag = ''
+        while True:
+            tag = chr(ord('a') + number % 26) + tag
+            number = number // 26
+            if number == 0:
+                break
+        return tag
+
+    def tag_exists(tag):
+        file_name = f"{name}_{ftag}{tag}.npy"
+        file_path = save_dir / file_name
+        return file_path.exists()
+
+    i = 0
+    while True:
+        tag = number_to_tag(i)
+        file_name = f"{name}_t{ftag}{tag}.npy"
         file_path = save_dir / file_name
         if not file_path.exists():
             return np.save(file_path, arr)
