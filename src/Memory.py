@@ -6,6 +6,7 @@ import matplotlib.animation as animation
 from .Defaults import default_process, default_flow, default_trajectory
 
 main_path = Path.cwd() / "CellFlow" # update this to make it desktop
+inbox_path = main_path / "inbox"
 types_path = main_path / "types.json"
 
 def init_memory():
@@ -25,10 +26,10 @@ def init_memory():
     """
     try:
         os.makedirs(main_path, exist_ok=True)
-        if not types_path.exists():
-            with open(types_path, "w") as f:
-                json.dump({}, f, indent=2) 
-    
+        os.makedirs(inbox_path, exist_ok=True)
+        with open(types_path, "w") as f:
+            json.dump({}, f, indent=2)
+
     except Exception as e:
         print(f"[ERROR] Failed to initialize memory: {e}")
    
