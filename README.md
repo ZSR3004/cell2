@@ -6,9 +6,9 @@
 
 2. [How Files are Saved](#how-files-are-saved)
 
-3. [Basic Commands](#basic-commands)
+3. [Basic Usage](#basic-usage)
 
-4. [Usage Examples](#usage-examples)
+4. [CellFlow as Code Example](#cellflow-as-code-example)
 
 5. [Acknowledgments](#acknowledgments)
 
@@ -93,7 +93,7 @@ This file holds metadata about the orginal Tiff stack. In particular, `meta.json
 
 This is all information you could parse out from the "Optical Flow" folder, but I put it in its own json to make it easier to access.
 
-## Basic Commands
+## Basic Usage
 
 Let's say you've finally intstalled CellFlow. Open an empty cmd window (or Powershell if you prefer). The first thing you have to do is init the directory (the one described [above](#how-files-are-saved)). Navigate to whatever directory you want to make the main directory in using the `cd` command (I'll use Desktop as an example).
 
@@ -301,7 +301,7 @@ Now, the directory will look like this.
 
 That's the whole workflow! If you're done, remove your file from the `in/` box, and you can just take out the file with all the videos and optical flows.
 
-## Usage Examples
-For usage examples, please refer to the `example_notebooks` subdirectory.
+## Cell Flow as Code Examples
+For usage examples, please refer to the `example_notebooks` directory.
 
 ## Acknowledgments
