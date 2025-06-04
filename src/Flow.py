@@ -1,5 +1,6 @@
 import numpy as np
-from cv2 import calcOpticalFlowFarneback
+import cv2
+from scipy.ndimage import gaussian_laplace
 
 def preprocess_frame(frame: np.ndarray, **kwargs) -> np.ndarray:
     """
@@ -96,7 +97,7 @@ def optical_flow(   arr : np.array,
     for i in range(num_frames - 1):
         f1 = arr[i]
         f2 = arr[i + 1]
-        flow[i] = calcOpticalFlowFarneback(f1, f2, None,
+        flow[i] = cv2.calcOpticalFlowFarneback(f1, f2, None,
                                                 pyr_scale, levels, 
                                                 winsize, iterations, 
                                                 poly_n, poly_sigma, 

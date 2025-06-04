@@ -147,11 +147,6 @@ def save_trajectory(name : str, ftag : str, arr : np.array):
                 break
         return tag
 
-    def tag_exists(tag):
-        file_name = f"{name}_{ftag}{tag}.npy"
-        file_path = save_dir / file_name
-        return file_path.exists()
-
     file_path = get_unique_path(name, lambda i: f"{name}_t{ftag}{number_to_tag(i)}.npy")
     np.save(file_path, arr)
 
