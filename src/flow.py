@@ -51,7 +51,7 @@ def preprocess_frame(frame: np.ndarray, **kwargs) -> np.ndarray:
 
     return frame
 
-def combine_flows(flow_list : list):
+def combine_flows(flow_list : list) -> np.ndarray:
     """
     Temporary function to combine different channels into one array.
 
@@ -89,7 +89,7 @@ def optical_flow(   arr : np.array,
 
     return flow
 
-def compute_flow_pair(args):
+def compute_flow_pair(args) -> np.ndarray:
     """
     Computes optical flow for a pair of frames using Farneback method.
 
@@ -127,7 +127,7 @@ def optical_flow(   arr : np.array,
                     iterations : int = 3, 
                     poly_n : int = 5, 
                     poly_sigma : float = 1.2,
-                    flag : int = 0):
+                    flag : int = 0) -> np.ndarray:
     """
     Computes dense optical flow using Farneback method on a preprocessed channel. Allows manual
     changes to the params for optical flow.

@@ -9,7 +9,7 @@ main_path = Path.cwd() / "CellFlow" # update this to make it desktop
 inbox_path = main_path / "inbox"
 types_path = main_path / "types.json"
 
-def init_memory():
+def init_memory() -> None:
     """
     Initializes memory for the application.
 
@@ -33,7 +33,7 @@ def init_memory():
     except Exception as e:
         print(f"[ERROR] Failed to initialize memory: {e}")
 
-def get_unique_path(name, file_type, pattern_fn):
+def get_unique_path(name, file_type, pattern_fn) -> Path:
     """
     Generates a unique file path in the given directory based on a naming pattern.
 
@@ -57,7 +57,7 @@ def get_unique_path(name, file_type, pattern_fn):
         i += 1
    
 # saving
-def save_type(stacktype : str, params : dict):
+def save_type(stacktype : str, params : dict) -> None:
     """
     Saves the type of stack to the types.json file.
     
@@ -79,7 +79,7 @@ def save_type(stacktype : str, params : dict):
     with open(types_path, 'w') as f:
         json.dump(types, f, indent=2)
 
-def save_meta(path : str, stacktype : str, name : str):
+def save_meta(path : str, stacktype : str, name : str) -> None:
     """
     Saves metadata about the stack to a JSON file.
     Args:
@@ -96,7 +96,7 @@ def save_meta(path : str, stacktype : str, name : str):
     with open(meta_path / 'meta.json', 'w') as f:
         json.dump(meta, f, indent=2)
 
-def save_arr(name : str, arr : np.array):
+def save_arr(name : str, arr : np.array) -> None:
     """
     Saves a numpy array to a file.
     
@@ -124,7 +124,7 @@ def save_flow(name : str, arr : np.array):
     file_path = get_unique_path(name, 'flow', lambda i: f"{name}_f{i}.npy")
     np.save(file_path, arr)
 
-def save_trajectory(name : str, ftag : str, arr : np.array):
+def save_trajectory(name : str, ftag : str, arr : np.array) -> None:
     """
     Saves the trajectory flow array.
 
@@ -138,7 +138,7 @@ def save_trajectory(name : str, ftag : str, arr : np.array):
     Returns:
         None: Just saves the array to a file.
     """
-    def number_to_tag(number):
+    def number_to_tag(number : int) -> str:
         tag = ''
         while True:
             tag = chr(ord('a') + number % 26) + tag
@@ -150,7 +150,7 @@ def save_trajectory(name : str, ftag : str, arr : np.array):
     file_path = get_unique_path(name, 'trajectory', lambda i: f"{name}_t{ftag}{number_to_tag(i)}.npy")
     np.save(file_path, arr)
 
-def save_video(name : str, flag : str, **kwargs):
+def save_video(name : str, flag : str, **kwargs) -> None:
     """
     Creates a video of optical flow vectors overlaid on the original image frames.
 
@@ -194,7 +194,7 @@ def save_video(name : str, flag : str, **kwargs):
 
     file_path = get_unique_path(name, 'video', lambda i: f"{name}_v{flag}_{i}.mp4")
     
-    def update(frame):
+    def update(frame : np.ndarray) -> tuple:
         img_disp.set_data(og_arr[frame])
         U = arr[frame, ::step, ::step, 0]
         V = arr[frame, ::step, ::step, 1]
@@ -211,7 +211,7 @@ def save_video(name : str, flag : str, **kwargs):
     writer = Writer(fps=fps, metadata=dict(artist='Optical Flow'), bitrate=1800)
     ani.save(file_path, writer=writer)
 
-def load_params(stacktype : str):
+def load_params(stacktype : str) -> dict:
     """
     Loads parameters from types.json.
 

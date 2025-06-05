@@ -2,7 +2,7 @@ import numpy as np
 from .memory import save_video
 import matplotlib.pyplot as plt
 
-def show_flow(flow : np.array, title='Optical Flow'):
+def show_flow(flow : np.array, title='Optical Flow') -> None:
     """
     Displays optical flow as a quiver plot using matplotlib.
 
@@ -30,7 +30,7 @@ def show_flow(flow : np.array, title='Optical Flow'):
     plt.tight_layout()
     plt.show()
 
-def show_image(image : np.array, title='Image', figsize=(12, 8)):
+def show_image(image : np.array, title='Image', figsize=(12, 8)) -> None:
     """
     Displays an image using matplotlib.
 
@@ -50,7 +50,7 @@ def show_image(image : np.array, title='Image', figsize=(12, 8)):
 
 def create_vector_field_video(name : str, arr : np.array, og_arr : np.array, 
                               step : int = 20, scale : int = 1, fps : int = 10, figsize : int | int = (12,8),
-                              title : str = None, flag : str = None):
+                              title : str = None, flag : str = None) -> None:
     """
     Creates a video of vector fields overlaid on the original image frames if desired. 
 

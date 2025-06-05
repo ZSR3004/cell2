@@ -56,7 +56,7 @@ class TiffStack():
         self.params = mem.load_params(self.stacktype)
         self.save_TiffStack()
     
-    def _get_name(self):
+    def _get_name(self) -> str:
         """
         Generates a name for the TiffStack based on the file name.
         
@@ -67,7 +67,7 @@ class TiffStack():
         stem = os.path.splitext(base)[0]
         return stem
     
-    def save_TiffStack(self):
+    def save_TiffStack(self) -> None:
         """
         Saves TiffStack object into the "Optical Flow" folder.
 
@@ -81,7 +81,7 @@ class TiffStack():
         mem.save_meta(self.path, self.stacktype, self.name)
         mem.save_arr(self.name, self.arr)
     
-    def isolate_channel(self, channel_idx : int):
+    def isolate_channel(self, channel_idx : int) -> np.ndarray:
         """
         Isolates a specific channel from the TIFF stack.
 
@@ -94,7 +94,7 @@ class TiffStack():
         assert 0 <= channel_idx < self.arr.shape[1], f"Channel index out of range: {channel_idx}"
         return self.arr[:, channel_idx, ...]
     
-    def calculate_optical_flow(self, process_args=None, flow_args=None, default=False):
+    def calculate_optical_flow(self, process_args=None, flow_args=None, default=False) -> np.ndarray:
         """
         Computes optical flow between the first two channels of the TIFF stack using the Farneback method.
 
@@ -151,7 +151,7 @@ class TiffStack():
             flag='f'
         )
     
-    def calculate_trajectory(self, flow):
+    def calculate_trajectory(self, flow) -> np.ndarray:
         """
         Calculates the trajectory of the optical flow vectors.
 
