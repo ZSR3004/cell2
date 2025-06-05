@@ -106,7 +106,7 @@ def save_arr(name : str, arr : np.array) -> None:
     Returns:
         None: Just saves the array to a file.
     """
-    np.save(main_path / name, arr)
+    np.save(main_path / name / 'arr', arr)
 
 def save_flow(name : str, arr : np.array):
     """
