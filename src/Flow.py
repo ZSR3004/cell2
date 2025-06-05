@@ -1,5 +1,5 @@
-import numpy as np
 import cv2
+import numpy as np
 from scipy.ndimage import gaussian_laplace
 
 def preprocess_frame(frame: np.ndarray, **kwargs) -> np.ndarray:

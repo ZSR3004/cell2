@@ -1,7 +1,7 @@
 import os
-from pathlib import Path
 import json
 import numpy as np
+from pathlib import Path
 import matplotlib.animation as animation
 from .Defaults import default_process, default_flow, default_trajectory
 
