@@ -1,7 +1,6 @@
-import matplotlib.pyplot as plt
 import numpy as np
-import cv2
 from .Memory import save_video
+import matplotlib.pyplot as plt
 
 def show_flow(flow : np.array, title='Optical Flow'):
     """
