@@ -48,11 +48,11 @@ def show_image(image : np.array, title='Image', figsize=(12, 8)):
     plt.axis('off')
     plt.show()
 
-def create_optical_flow_video(name : str, arr : np.array, og_arr : np.array, 
+def create_vector_field_video(name : str, arr : np.array, og_arr : np.array, 
                               step : int = 20, scale : int = 1, fps : int = 10, figsize : int | int = (12,8),
                               title : str = None, flag : str = None):
     """
-    Creates a video of optical flow vectors overlaid on the original image frames. 
+    Creates a video of vector fields overlaid on the original image frames if desired. 
 
     Args:
         name (str): Name of the video file to save.
@@ -73,8 +73,8 @@ def create_optical_flow_video(name : str, arr : np.array, og_arr : np.array,
     TODO:
         - Make more visible by changing color, vector sizes, etc.
     """
-    if flag != "" or flag != 'f' or flag != 't':
-        raise ValueError('Invalid video type. Valid types are emoty quotes, an l or a t.')
+    if flag != "" and flag != 'f' and flag != 't':
+        raise ValueError('Invalid video type. Valid types are empty quotes, an f or a t.')
 
     T_minus_1, H, W, _ = arr.shape
     Y, X = np.mgrid[0:H:step, 0:W:step]
@@ -92,7 +92,7 @@ def create_optical_flow_video(name : str, arr : np.array, og_arr : np.array,
 
     if flag != "":
         save_video(name, flag, 
-                   {
+                   **{
                           'img_disp': img_disp,
                           'arr': arr,
                           'og_arr': og_arr,
