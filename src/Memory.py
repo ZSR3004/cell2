@@ -6,6 +6,7 @@ import matplotlib.animation as animation
 from .Defaults import default_process, default_flow, default_trajectory
 
 main_path = Path.cwd() / "CellFlow" # update this to make it desktop
+inbox_path = main_path / "inbox"
 types_path = main_path / "types.json"
 
 def init_memory():
@@ -25,10 +26,10 @@ def init_memory():
     """
     try:
         os.makedirs(main_path, exist_ok=True)
-        if not types_path.exists():
-            with open(types_path, "w") as f:
-                json.dump({}, f, indent=2) 
-    
+        os.makedirs(inbox_path, exist_ok=True)
+        with open(types_path, "w") as f:
+            json.dump({}, f, indent=2)
+
     except Exception as e:
         print(f"[ERROR] Failed to initialize memory: {e}")
    
@@ -84,6 +85,29 @@ def save_arr(name : str, arr : np.array):
     """
     np.save(main_path / name, arr)
 
+def get_unique_path(name, file_type, pattern_fn):
+    """
+    Generates a unique file path in the given directory based on a naming pattern.
+
+    Args:
+        name (str): Main identifier (e.g., protein name).
+        file_type (str): Subdirectory (e.g., 'flow', 'trajectory').
+        pattern_fn (callable): Function that takes an integer and returns a file name.
+
+    Returns:
+        Path: Unique file path that does not yet exist.
+    """
+    save_dir = main_path / name / file_type
+    save_dir.mkdir(parents=True, exist_ok=True)
+
+    i = 0
+    while True:
+        file_name = pattern_fn(i)
+        file_path = save_dir / file_name
+        if not file_path.exists():
+            return file_path
+        i += 1
+
 def save_flow(name : str, arr : np.array):
     """
     Saves the optical flow array.
@@ -97,17 +121,8 @@ def save_flow(name : str, arr : np.array):
     Returns:
         None: Just saves the array to a file.
     """
-    save_dir = main_path / name / 'flow'
-    if not save_dir.exists():
-        save_dir.mkdir(parents=True, exist_ok=True)
-
-    i = 0
-    while True:
-        file_name = f"{name}_f{i}.npy"
-        file_path = save_dir / file_name
-        if not file_path.exists():
-            return np.save(file_path, arr)
-        i += 1
+    file_path = get_unique_path(name, lambda i: f"{name}_f{i}.npy")
+    np.save(file_path, arr)
 
 def save_trajectory(name : str, ftag : str, arr : np.array):
     """
@@ -123,9 +138,6 @@ def save_trajectory(name : str, ftag : str, arr : np.array):
     Returns:
         None: Just saves the array to a file.
     """
-    save_dir = main_path / name / 'trajectory'
-    save_dir.mkdir(parents=True, exist_ok=True)
-
     def number_to_tag(number):
         tag = ''
         while True:
@@ -140,14 +152,8 @@ def save_trajectory(name : str, ftag : str, arr : np.array):
         file_path = save_dir / file_name
         return file_path.exists()
 
-    i = 0
-    while True:
-        tag = number_to_tag(i)
-        file_name = f"{name}_t{ftag}{tag}.npy"
-        file_path = save_dir / file_name
-        if not file_path.exists():
-            return np.save(file_path, arr)
-        i += 1
+    file_path = get_unique_path(name, lambda i: f"{name}_t{ftag}{number_to_tag(i)}.npy")
+    np.save(file_path, arr)
 
 def save_video(name : str, flag : str, **kwargs):
     """
@@ -188,11 +194,10 @@ def save_video(name : str, flag : str, **kwargs):
     fig = kwargs.get('fig', None)
     T_minus_1 = kwargs.get('T_minus_1', None)
 
-
     if flag[0] not in ['f', 't']:
         raise ValueError(f'Invalid flag. Expected f or t, but got {flag}')
 
-    # implement rest here
+    file_path = get_unique_path(name, lambda i: f"{name}_v{flag}_{i}.mp4")
     
     def update(frame):
         img_disp.set_data(og_arr[frame])
@@ -209,7 +214,7 @@ def save_video(name : str, flag : str, **kwargs):
     ani = animation.FuncAnimation(fig, update, frames=T_minus_1, blit=False)
     Writer = animation.writers['ffmpeg']
     writer = Writer(fps=fps, metadata=dict(artist='Optical Flow'), bitrate=1800)
-    ani.save(output_file, writer=writer)
+    ani.save(file_path, writer=writer)
 
 def load_params(stacktype : str):
     """
