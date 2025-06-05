@@ -1,6 +1,7 @@
 import numpy as np
 from .flow import *
 from .memory import *
+from .tiffvisualize import create_vector_field_video
 import tifffile as tiff
 
 class TiffStack():
@@ -130,3 +131,19 @@ class TiffStack():
         combined = combine_flows([flow_2, flow_3])
         save_flow(self.name, combined)
         return combined
+
+    def save_optflow_video(self, flow, idx : int = 0, step : int = 20, 
+                          scale : int = 1, fps : int = 10, 
+                          figsize : int | int = (12,8),
+                          title : str = None):
+        create_vector_field_video(
+            self.name, 
+            flow[:, idx, ...], 
+            self.isolate_channel(idx), 
+            step=step, 
+            scale=scale, 
+            fps=fps, 
+            figsize=figsize, 
+            title=title,
+            flag='f'
+        )
