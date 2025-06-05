@@ -3,6 +3,7 @@ import numpy as np
 import tifffile as tiff
 import src.flow as flow
 import src.memory as mem
+import src.trajectory as traj
 from .tiffvisualize import create_vector_field_video
 from .defaults import default_process, default_flow, default_trajectory
 
@@ -149,3 +150,12 @@ class TiffStack():
             title=title,
             flag='f'
         )
+    
+    def calculate_trajectory(self, flow):
+        """
+        Calculates the trajectory of the optical flow vectors.
+
+        Returns:
+            np.ndarray: Trajectory of the optical flow vectors.
+        """
+        return traj.trajectory(flow)
