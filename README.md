@@ -24,7 +24,7 @@ The rest of this README will walk through the basics of CF, explaining the direc
 
 ## How Files are Saved
 
-When you use this program, the `init_memory` function is ran. This creates a file labled "Optical Flow" on the current user's desktop. As of the time of creating this program, the Mithcel formats their files in a `DATE_CELLTYPE` format. This file name is used to name the subdirectories of the "Optical Flow" folder. In general, the "Optical Flow" has the following structure.
+When you use this program, the `init_memory` function is ran. This creates a file labeled "Optical Flow" on the current user's desktop. As of the time of creating this program, the Mitchel formats their files in a `DATE_CELLTYPE` format. This file name is used to name the subdirectories of the "Optical Flow" folder. In general, the "Optical Flow" has the following structure.
 ```
 Optical Flow/
   |-  types.json
@@ -51,7 +51,8 @@ A `.json` file is a structured datafile. If you 'double-click' such a file, you 
 A `.np` file is a giant array of numbers. If you're a lab member, this isn't super useful to you directly, but you can use programs to visualize whatever information is held in the file. If you're messing with the code, then you can use the very popular `numpy` library to load, save, and manipulate `.np` files. In fact, `.np` files are literally just how `numpy` saves an `np array`.
 
 ### types.json
-When performing optical flow and trajectory tracking, we have to fine tune parameters to get an accurate result. That process takes a lot of time (upwards of hours). This `types.json` takes the `CELLTYPE` part of the file name and basically makes a dictionary and saves these parameters as the value. This allows the program to check if we've already seen this type of cell and pickup the parameters instead of repeated parameter tuning. Opening this file, isn't super helpful to lab members, but if you want, you can manuallly change the parmeters for a type of file.
+
+When performing optical flow and trajectory tracking, we have to fine tune parameters to get an accurate result. That process takes a lot of time (upwards of hours). This `types.json` takes the `CELLTYPE` part of the file name and basically makes a dictionary and saves these parameters as the value. This allows the program to check if we've already seen this type of cell and pickup the parameters instead of repeated parameter tuning. Opening this file, isn't super helpful to lab members, but if you want, you can manually change the parameters for a type of file.
 
 ### in/
 
@@ -65,11 +66,11 @@ This is the primary file for your TIFF stack. When you upload a file of the name
 
 This folder holds the optical flow outputs for your Tiff file. This information is stored in a `.np` file of shape `(frames, view, height, width, 2)`, where the 2 represents a `(dx, dy)` pair. Basically, this has multiple views, each with some amount of frames. For each one of these frames, you have `(dx, dy)` pairs that represent the velocity in the x and y direction. In effect, each view is a vector field.
 
-The name scheme is just the orignal file's name, appended with '_fi' where is i is some integer. The f stands for 'flow' and the integer is to prevent the overriding of optical flow. The user can manually delete any unwated flows by navigating the directory on the desktop.
+The name scheme is just the original file's name, appended with '_fi' where is i is some integer. The f stands for 'flow' and the integer is to prevent the overriding of optical flow. The user can manually delete any unwanted flows by navigating the directory on the desktop.
 
 ### trajectory/
 
-This folder holds the trajectory information for the TIFF file. Information is stored in a `.np` file of shape `(frames, view, height, width, 2)`. This is exactly a vector field as described above in [flow](###flow/).
+This folder holds the trajectory information for the TIFF file. Information is stored in a `.np` file of shape `(frames, view, height, width, 2)`. This is exactly a vector field as described above in [flow](#flow).
 
 The name scheme is similar to that above as well, with the files's name being appended with '_ti', where t stands for 'trajectory' and i is an integer that increments to avoid file overwriting.
 
@@ -77,11 +78,11 @@ The name scheme is similar to that above as well, with the files's name being ap
 
 This folder holds any videos the user might have created. Users can either created videos of the optical flow or the trajectory. They're in an `.mp4` format, so you should be able to play it from really any device.
 
-This name scheme is a little more complicated than the other files. Again, we have the file's orginal name tagged with something. Either this is '_vfi' which stands for "video flow" (the i being an integer to avoid overwriting videos) or it's '_vti' which stands for "video trajectory" (i being used for the same reason).
+This name scheme is a little more complicated than the other files. Again, we have the file's original name tagged with something. Either this is '_vfi' which stands for "video flow" (the i being an integer to avoid overwriting videos) or it's '_vti' which stands for "video trajectory" (i being used for the same reason).
 
 ### meta.json
 
-This file holds metadata about the orginal Tiff stack. In particular, `meta.json` has the following structure when loaded into Python.
+This file holds metadata about the original Tiff stack. In particular, `meta.json` has the following structure when loaded into Python.
 
 ```python
 {
@@ -95,7 +96,7 @@ This is all information you could parse out from the "Optical Flow" folder, but 
 
 ## Basic Usage
 
-Let's say you've finally intstalled CellFlow. Open an empty cmd window (or Powershell if you prefer). The first thing you have to do is init the directory (the one described [above](#how-files-are-saved)). Navigate to whatever directory you want to make the main directory in using the `cd` command (I'll use Desktop as an example).
+Let's say you've finally installed CellFlow. Open an empty cmd window (or Powershell if you prefer). The first thing you have to do is init the directory (the one described [above](#how-files-are-saved)). Navigate to whatever directory you want to make the main directory in using the `cd` command (I'll use Desktop as an example).
 
 ```bash
 > cd path\to\your\desired\directory # this is the general format
@@ -108,7 +109,7 @@ Now, we'll use CellFlow to create our directory.
 > cf init
 ```
 
-This will create a new file labeled CellFlow in that directory. Notice the format of this command. The first "word" is `cf` which stands for CellFlow. This just tells the computer that you're accessing the CellFlow program. You're basically just telling the computer that you want CellFlow to do something. The second "word" is the actual command, in this case `init` which stands for intialize (the directory/program). 
+This will create a new file labeled CellFlow in that directory. Notice the format of this command. The first "word" is `cf` which stands for CellFlow. This just tells the computer that you're accessing the CellFlow program. You're basically just telling the computer that you want CellFlow to do something. The second "word" is the actual command, in this case `init` which stands for initialize (the directory/program). 
 
 You can move into that directory using the `cd` command again.
 
@@ -116,7 +117,7 @@ You can move into that directory using the `cd` command again.
 > cd CellFlow
 ```
 
-Now, you can view the actual file. If you can easily access it from the explorer/finder, just double click on the file. Othewise, we can use the command line to open it.
+Now, you can view the actual file. If you can easily access it from the explorer/finder, just double click on the file. Otherwise, we can use the command line to open it.
 
 ```bash
 > explorer.exe . # the period just means the current directory
@@ -155,9 +156,9 @@ You'll see a loading screen, then CellFlow will tell you that you're done! Now, 
         |-  DATE_CELLTYPE_f0.np
 ```
 
-That's it! The file `DATE_CELLTYPE_f0.np` is your optical flow file. This probably isn't super helpful to you (although you'll want to keep this since it'll act as sort of a "raw data" file). Instead, your probably want to visuzalize it. CellFlow has a nice little feature where you can make a video of the vector field. Let's say you want to have the vector field over the original video (that is, you want to have a video of the vector field and want the video of the cells moving as the background).
+That's it! The file `DATE_CELLTYPE_f0.np` is your optical flow file. This probably isn't super helpful to you (although you'll want to keep this since it'll act as sort of a "raw data" file). Instead, your probably want to visualize it. CellFlow has a nice little feature where you can make a video of the vector field. Let's say you want to have the vector field over the original video (that is, you want to have a video of the vector field and want the video of the cells moving as the background).
 
-Notice the "`_f0.np`" at the end of the file in `flow/`. That's important. Everytime you run the optical flow command you'll get a new file with the same name, except that number is increased by one. Let's call this the index number. Currently, we're interested in making a video of the file indexed with 0. So, type the following. 
+Notice the "`_f0.np`" at the end of the file in `flow/`. That's important. Every time you run the optical flow command you'll get a new file with the same name, except that number is increased by one. Let's call this the index number. Currently, we're interested in making a video of the file indexed with 0. So, type the following. 
 
 ```bash
 > cf video 
@@ -201,7 +202,7 @@ This was the interactive route. If you already know the index and commands you w
 cf video 0 f0 --overlay
 ```
 
-Notice how the flag (overlay) is preceded by the double dashes (--). You'll have to include that if you want CellFlow to read the flag properly. You can also shorthand it as `-o`, this time using a single dash. Now, we'll do the exact same thing with the trajectory. This is similar to optical flow, but with a couple of more caveats. Let's go over two siutations. First, you run the trajectory command directly. Second, you have and you want to make the trajectory of a specific optical flow file. We'll keep using the index 0 for the tiff stack.
+Notice how the flag (overlay) is preceded by the double dashes (--). You'll have to include that if you want CellFlow to read the flag properly. You can also shorthand it as `-o`, this time using a single dash. Now, we'll do the exact same thing with the trajectory. This is similar to optical flow, but with a couple of more caveats. Let's go over two situations. First, you run the trajectory command directly. Second, you have and you want to make the trajectory of a specific optical flow file. We'll keep using the index 0 for the tiff stack.
 
 1. Direct.
 
@@ -209,7 +210,7 @@ Notice how the flag (overlay) is preceded by the double dashes (--). You'll have
 cf traj
 ```
 
-You'll see a loading screen (this might take a while) and that's it! Running the comamnd directly means its creating a trajectory of orginal stack. That is, its creating a _new_ optical flow and tracking the trajectory of that. So, your directory will look like this.
+You'll see a loading screen (this might take a while) and that's it! Running the command directly means its creating a trajectory of original stack. That is, its creating a _new_ optical flow and tracking the trajectory of that. So, your directory will look like this.
 
 ```
 |-  types.json
@@ -254,7 +255,7 @@ Flags? Press ENTER if none.
 >
 ```
 
-We won't enter any flags. Now, your direcotry will look like this.
+We won't enter any flags. Now, your directory will look like this.
 
 ```
 |-  types.json
@@ -274,7 +275,7 @@ We won't enter any flags. Now, your direcotry will look like this.
 
 Notice how we still have `t1` at the end of the trajectory file. The `a` just denotes its the second version. This will increment alphabetically, going from 'a' to 'b' and so on. Once you hit 'z', it'll wrap around and do 'aa'.
 
-Now, let's make a video of the `t1a` trajectory. We're not going to overlay it on the orginal video this time. We'll also use our shortcut.
+Now, let's make a video of the `t1a` trajectory. We're not going to overlay it on the original video this time. We'll also use our shortcut.
 
 ```bash
 cf video 0 t1a --overlay
@@ -302,6 +303,7 @@ Now, the directory will look like this.
 That's the whole workflow! If you're done, remove your file from the `in/` box, and you can just take out the file with all the videos and optical flows.
 
 ## Cell Flow as Code Examples
+
 For usage examples, please refer to the `example_notebooks` directory.
 
 ## Acknowledgments
