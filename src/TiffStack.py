@@ -1,7 +1,7 @@
-import tifffile as tiff
 import numpy as np
-from .Memory import *
 from .Flow import *
+from .Memory import *
+import tifffile as tiff
 
 class TiffStack():
     def __init__(self, path, stacktype, name = None, n_channels = 3, dtype = np.uint16):
