@@ -113,7 +113,7 @@ class TiffStack():
 
         def compute_flow_for_channel(channel_idx):
             frames = self.isolate_channel(channel_idx)
-            processed = np.stack([flow.preprocess_frame(f, **process_args) for f in frames])
+            processed = flow.preprocess_stack(frames, **process_args)
             if default:
                 return flow.optical_flow(processed)
             else:
