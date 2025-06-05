@@ -3,7 +3,7 @@ import numpy as np
 from scipy.ndimage import gaussian_laplace
 from multiprocessing import Pool, cpu_count
 
-def preprocess_frame(frame: np.ndarray, **kwargs) -> np.ndarray:
+def preprocess_frame(args) -> np.ndarray:
     """
     Preprocesses a single frame with optional Gaussian/median blurs, normalization,
     and type conversion.
@@ -21,6 +21,7 @@ def preprocess_frame(frame: np.ndarray, **kwargs) -> np.ndarray:
     Returns:
         np.ndarray: Preprocessed image.
     """
+    frame, kwargs = args
     skip = kwargs.get("skip", [])
 
     if 'laplace' in skip:
@@ -50,6 +51,30 @@ def preprocess_frame(frame: np.ndarray, **kwargs) -> np.ndarray:
         frame = cv2.convertScaleAbs(frame)
 
     return frame
+
+def preprocess_stack(arr: np.ndarray, **kwargs) -> np.ndarray:
+    """
+    Preprocesses a stack of frames with optional Gaussian/median blurs, normalization,
+    and type conversion.
+
+    Args:
+        arr (np.ndarray): Input stack of frames (shape: N x H x W).
+        **kwargs:
+            - laplace (dict): {'sigma': float} for Gaussian Laplace filter
+            - gauss (dict): {'ksize': (int, int), 'sigmaX': float}
+            - median (dict): {'ksize': int}
+            - normalize (dict): {'alpha': int, 'beta': int, 'norm_type': int}
+            - convert (dict): {'dtype': np.dtype}
+            - skip (list[str]): steps to skip (e.g., ['gauss', 'median'])
+
+    Returns:
+        np.ndarray: Preprocessed stack of frames.
+    """
+
+    frames = [(arr[i], kwargs) for i in range(arr.shape[0])]
+    with Pool(cpu_count()) as pool:
+        preprocessed_frames = pool.map(preprocess_frame, frames)
+    return np.stack(preprocessed_frames, axis=0)
 
 def combine_flows(flow_list : list) -> np.ndarray:
     """
@@ -146,7 +171,7 @@ def optical_flow(   arr : np.array,
     Returns:
         np.ndarray: (N-1, H, W, 2) flow vectors between frames.
     """ 
-    num_frames, h, w = arr.shape
+ 
     flow_args = {
         'pyr_scale': pyr_scale,
         'levels': levels,
@@ -156,8 +181,7 @@ def optical_flow(   arr : np.array,
         'poly_sigma': poly_sigma,
         'flag': flag
     }
-
-    pairs = [(arr[i], arr[i+1], flow_args) for i in range(num_frames - 1)]
+    pairs = [(arr[i], arr[i+1], flow_args) for i in range(arr.shape[0] - 1)]
     with Pool(cpu_count()) as pool:
         flow_list = pool.map(compute_flow_pair, pairs)
     return np.stack(flow_list)
