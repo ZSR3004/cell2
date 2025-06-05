@@ -3,7 +3,7 @@ import json
 import numpy as np
 from pathlib import Path
 import matplotlib.animation as animation
-from .Defaults import default_process, default_flow, default_trajectory
+from .defaults import default_process, default_flow, default_trajectory
 
 main_path = Path.cwd() / "CellFlow" # update this to make it desktop
 inbox_path = main_path / "inbox"

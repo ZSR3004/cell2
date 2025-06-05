@@ -1,5 +1,5 @@
 import numpy as np
-from .Memory import save_video
+from .memory import save_video
 import matplotlib.pyplot as plt
 
 def show_flow(flow : np.array, title='Optical Flow'):

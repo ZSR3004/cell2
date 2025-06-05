@@ -1,6 +1,6 @@
 import numpy as np
-from .Flow import *
-from .Memory import *
+from .flow import *
+from .memory import *
 import tifffile as tiff
 
 class TiffStack():
