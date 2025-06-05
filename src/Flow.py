@@ -71,8 +71,8 @@ def optical_flow(   arr : np.array,
                     iterations : int = 3, 
                     poly_n : int = 5, 
                     poly_sigma : float = 1.2,
-                    flag : int = 0, 
-                    **kwargs):
+                    flag : int = 0,
+                    default = False):
     """
     Computes dense optical flow using Farneback method on a preprocessed channel. Allows manual
     changes to the params for optical flow.
@@ -93,7 +93,7 @@ def optical_flow(   arr : np.array,
     """ 
     num_frames, h, w = arr.shape
     flow = np.empty((num_frames - 1, h, w, 2), dtype=np.float32)
-
+    
     for i in range(num_frames - 1):
         f1 = arr[i]
         f2 = arr[i + 1]
