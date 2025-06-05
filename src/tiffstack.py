@@ -1,8 +1,10 @@
+import os
 import numpy as np
-from .flow import *
-from .memory import *
-from .tiffvisualize import create_vector_field_video
 import tifffile as tiff
+import src.flow as flow
+import src.memory as mem
+from .tiffvisualize import create_vector_field_video
+from .defaults import default_process, default_flow, default_trajectory
 
 class TiffStack():
     def __init__(self, path, stacktype, name = None, n_channels = 3, dtype = np.uint16):
@@ -47,10 +49,10 @@ class TiffStack():
         except Exception as e:
             print(f"Error loading TIFF file: {e}")
         
-        if not main_path.exists():
-            init_memory() 
+        if not mem.main_path.exists():
+            mem.init_memory() 
 
-        self.params = load_params(self.stacktype)
+        self.params = mem.load_params(self.stacktype)
         self.save_TiffStack()
     
     def _get_name(self):
@@ -74,9 +76,9 @@ class TiffStack():
         Returns:
             None, just saves the object.
         """
-        save_type(self.stacktype, self.params)
-        save_meta(self.path, self.stacktype, self.name)
-        save_arr(self.name, self.arr)
+        mem.save_type(self.stacktype, self.params)
+        mem.save_meta(self.path, self.stacktype, self.name)
+        mem.save_arr(self.name, self.arr)
     
     def isolate_channel(self, channel_idx : int):
         """
@@ -110,11 +112,11 @@ class TiffStack():
 
         def compute_flow_for_channel(channel_idx):
             frames = self.isolate_channel(channel_idx)
-            processed = np.stack([preprocess_frame(f, **process_args) for f in frames])
+            processed = np.stack([flow.preprocess_frame(f, **process_args) for f in frames])
             if default:
-                return optical_flow(processed)
+                return flow.optical_flow(processed)
             else:
-                return optical_flow(
+                return flow.optical_flow(
                     processed,
                     flow_args['pyr_scale'],
                     flow_args['levels'],
@@ -128,8 +130,8 @@ class TiffStack():
         flow_2 = compute_flow_for_channel(1)
         flow_3 = compute_flow_for_channel(2)
 
-        combined = combine_flows([flow_2, flow_3])
-        save_flow(self.name, combined)
+        combined = flow.combine_flows([flow_2, flow_3])
+        mem.save_flow(self.name, combined)
         return combined
 
     def save_optflow_video(self, flow, idx : int = 0, step : int = 20, 
