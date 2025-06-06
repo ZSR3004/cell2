@@ -26,7 +26,7 @@ def traj(tune, default, flows):
     stacks, stack_index = user_stack_input()
 
     if stack_index < 0 or stack_index >= len(stacks):
-        click.exceptions("Invalid stack selection. Please run the command again and select a valid number.")
+        click.ClickException("Invalid stack selection. Please run the command again and select a valid number.")
 
     stack_path = main_path / stacks[stack_index]
     flow_path = stack_path / 'flow'
@@ -47,12 +47,12 @@ def traj(tune, default, flows):
         ftag = click.prompt(f"""You selected: {stacks[stack_index]}. Please type the file tag or type 'list' (or 'l') 
                         to get a list of all the tags.""")
     elif ftag not in ftags:
-        raise click.exceptions(f"File tag {ftag} not found in the flow directory. Please check the available tags.")
+        raise click.ClickException(f"File tag {ftag} not found in the flow directory. Please check the available tags.")
 
     try:
         ftag_index = ftags.index(ftag)
     except ValueError:
-        raise click.exceptions(f"File tag {ftag} not found in the flow directory. Please check the available tags.")
+        raise click.ClickException(f"File tag {ftag} not found in the flow directory. Please check the available tags.")
     
     flow_name = flows[ftag_index]
     flow = load_flow(stack_path / flow_name)
