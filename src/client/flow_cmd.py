@@ -1,8 +1,8 @@
-import click
-from src.memory import inbox_path, types_path, load_params
-from defaults import default_process, default_flow
 import os
+import click
 import src.tiffstack as ts
+from defaults import default_process, default_flow
+from src.memory import inbox_path, types_path, load_params
 
 @click.command()
 @click.option('--tune', '-t', 
@@ -36,8 +36,8 @@ def optflow(tune, default, name):
         
         elif default:
             click.echo(f"Using default parameters for {file}.")
-            process = default_process
-            flow = default_flow
+            process_args = default_process
+            flow_args = default_flow
 
         else:
             path = inbox_path / file
@@ -46,14 +46,14 @@ def optflow(tune, default, name):
 
             if default_flag:
                 click.echo(f"Using default parameters for {file}.")
-                process = default_process
-                flow = default_flow
+                process_args = default_process
+                flow_args = default_flow
             else:
                 click.echo(f"Using custom parameters for {file}.")
-                process = params['process']
-                flow = params['flow']
+                process_args = params['process']
+                flow_args = params['flow']
 
-        flow = img.calculate_optical_flow(process_args=process, flow_args=flow)
+        flow = img.calculate_optical_flow(process_args=process_args, flow_args=flow_args)
         if flow.shape != (img.arr.shape[0] - 1, img.arr.shape[1], img.arr.shape[2], 2):
             raise click.Exception(f"""
                                   Optical flow calculation failed for {file}. The output shape is {flow.shape}, 
