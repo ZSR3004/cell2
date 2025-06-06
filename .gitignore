@@ -5,8 +5,9 @@
 # These are just notebooks that I'm experimenting with methods in
 /notebook_tests
 
-# OpticalFlow Directory for Example Notebooks
+# CellFlow
 /example_notebooks/CellFlow
+/CellFlow
 
 # Auto-generated file by pip
 *.egg-info/
