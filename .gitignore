@@ -1,8 +1,12 @@
+# Personal settings and venv
 /.venv
 /.vscode
 
-# these are just notebooks that I'm experimenting with methods in
+# These are just notebooks that I'm experimenting with methods in
 /notebook_tests
 
 # OpticalFlow Directory for Example Notebooks
 /example_notebooks/CellFlow
+
+# Auto-generated file by pip
+*.egg-info/
