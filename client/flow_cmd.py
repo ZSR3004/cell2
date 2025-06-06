@@ -28,7 +28,7 @@ def optflow(tune, default, name):
 
     for file in files:
         if not file.endswith('.tif') or not file.endswith('.tiff'):
-            raise click.Exception(f"File {file} is not a TIFF file. Please remove all non-TIFF files from the inbox directory.")
+            raise click.exceptions(f"File {file} is not a TIFF file. Please remove all non-TIFF files from the inbox directory.")
         
     for file in files:
         if tune:
@@ -55,7 +55,7 @@ def optflow(tune, default, name):
 
         flow = img.calculate_optical_flow(process_args=process_args, flow_args=flow_args)
         if flow.shape != (img.arr.shape[0] - 1, img.arr.shape[1], img.arr.shape[2], 2):
-            raise click.Exception(f"""
+            raise click.exceptions(f"""
                                   Optical flow calculation failed for {file}. The output shape is {flow.shape}, 
                                   expected {(img.arr.shape[0] - 1, img.arr.shape[1], img.arr.shape[2], 2)}.
                                   \nPlease delete the corrputed file from the flow directory and try again.""")
