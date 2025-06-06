@@ -220,13 +220,16 @@ def load_params(stacktype : str) -> dict:
     
     Returns:
         params: Dictionary of parameters.
+        default_flag: Boolean indicating if the parameters are default.
     """
     with open(types_path, 'r') as f:
         types = json.load(f)
     
     if stacktype not in types:
         params = {'process' : default_process, 'flow' : default_flow, 'trajectory' : default_trajectory}
+        default_flag = True
     else:
         params = types[stacktype]
+        default_flag = False
 
-    return params
+    return params, default_flag
