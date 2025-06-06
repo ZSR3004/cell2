@@ -53,7 +53,7 @@ class TiffStack():
         if not mem.main_path.exists():
             mem.init_memory() 
 
-        self.params = mem.load_params(self.stacktype)
+        self.params, _ = mem.load_params(self.stacktype)
         self.save_TiffStack()
     
     def _get_name(self) -> str:
@@ -94,7 +94,7 @@ class TiffStack():
         assert 0 <= channel_idx < self.arr.shape[1], f"Channel index out of range: {channel_idx}"
         return self.arr[:, channel_idx, ...]
     
-    def calculate_optical_flow(self, process_args=None, flow_args=None, default=False) -> np.ndarray:
+    def calculate_optical_flow(self, process_args=None, flow_args=None) -> np.ndarray:
         """
         Computes optical flow between the first two channels of the TIFF stack using the Farneback method.
 
@@ -114,19 +114,16 @@ class TiffStack():
         def compute_flow_for_channel(channel_idx):
             frames = self.isolate_channel(channel_idx)
             processed = np.stack([flow.preprocess_frame(f, **process_args) for f in frames])
-            if default:
-                return flow.optical_flow(processed)
-            else:
-                return flow.optical_flow(
-                    processed,
-                    flow_args['pyr_scale'],
-                    flow_args['levels'],
-                    flow_args['winsize'],
-                    flow_args['iterations'],
-                    flow_args['poly_n'],
-                    flow_args['poly_sigma'],
-                    flow_args['flag']
-                )
+            return flow.optical_flow(
+                processed,
+                flow_args['pyr_scale'],
+                flow_args['levels'],
+                flow_args['winsize'],
+                flow_args['iterations'],
+                flow_args['poly_n'],
+                flow_args['poly_sigma'],
+                flow_args['flag']
+            )
 
         flow_2 = compute_flow_for_channel(1)
         flow_3 = compute_flow_for_channel(2)
