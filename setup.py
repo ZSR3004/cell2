@@ -1,12 +1,12 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='cf',
+    name='cell-flow-tracking',
     version='0.1.0',
-    packages=find_packages(where='src'),
-    package_dir={'': 'src'},
+    packages=find_packages(include=['src', 'src.*', 'client', 'client.*']),
     install_requires=[
         'click',
+        # other dependencies
     ],
     entry_points={
         'console_scripts': [

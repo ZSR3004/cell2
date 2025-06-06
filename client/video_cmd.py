@@ -1,7 +1,7 @@
 import os
 import click
 from src.memory import main_path, load_metadata, save_video
-from src.client.cli_utils import user_stack_input
+from client.cli_utils import user_stack_input
 
 @click.command()
 def video():

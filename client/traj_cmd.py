@@ -1,5 +1,5 @@
 import click
-from src.client.cli_utils import user_stack_input
+from client.cli_utils import user_stack_input
 from src.memory import main_path, load_flow
 from src.defaults import default_trajectory
 from src.trajectory import trajectory

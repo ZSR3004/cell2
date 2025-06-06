@@ -1,8 +1,8 @@
 import os
 import click
 import src.tiffstack as ts
-from defaults import default_process, default_flow
-from src.memory import inbox_path, types_path, load_params
+from src.defaults import default_process, default_flow
+from src.memory import inbox_path, load_params
 
 @click.command()
 @click.option('--tune', '-t', 

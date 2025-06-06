@@ -1,6 +1,6 @@
 import click
 from .init_cmd import init
-from .flow_cmd import flow
+from .flow_cmd import optflow
 from .traj_cmd import traj
 from .video_cmd import video
 
@@ -10,6 +10,6 @@ def cf():
     pass
 
 cf.add_command(init)
-cf.add_command(flow)
+cf.add_command(optflow)
 cf.add_command(traj)
 cf.add_command(video)
