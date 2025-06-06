@@ -9,7 +9,7 @@ main_path = Path.cwd() / "CellFlow" # update this to make it desktop
 inbox_path = main_path / "inbox"
 types_path = main_path / "types.json"
 
-def init_memory() -> None:
+def init_memory(overwrite_flag : bool=False) -> None:
     """
     Initializes memory for the application.
 
@@ -25,10 +25,15 @@ def init_memory() -> None:
         None
     """
     try:
-        os.makedirs(main_path, exist_ok=True)
-        os.makedirs(inbox_path, exist_ok=True)
-        with open(types_path, "w") as f:
-            json.dump({}, f, indent=2)
+        if not os.exists(main_path) or overwrite_flag:
+            os.makedirs(main_path, exist_ok=True)
+
+        if not os.exists(main_path) or overwrite_flag:
+            os.makedirs(inbox_path, exist_ok=True)
+
+        if not os.path.exists(types_path) or overwrite_flag:
+            with open(types_path, "w") as f:
+                json.dump({}, f, indent=2)
 
     except Exception as e:
         print(f"[ERROR] Failed to initialize memory: {e}")
