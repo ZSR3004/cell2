@@ -1,7 +1,7 @@
 import numpy as np
 import cv2
 
-def trajectory(arr : np.array) -> np.array:
+def trajectory(arr : np.array, **kwargs : dict) -> np.array:
     """
     Dummy function to move onto other parts of the code.
 
