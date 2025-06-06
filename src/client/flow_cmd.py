@@ -1,4 +1,8 @@
 import click
+from src.memory import inbox_path, types_path, load_params
+from defaults import default_process, default_flow
+import os
+import src.tiffstack as ts
 
 @click.command()
 @click.option('--tune', '-t', 
@@ -13,6 +17,47 @@ import click
 @click.option('--default', '-d', 
            is_flag=True, 
            help="Use the default parameters for the process.")
-def optflow(tune, default):
+@click.option('--name', '-n', 
+              type=str, 
+              default=None, 
+              help="Name of the cell to use for saving the results. If not provided, the name will be derived from the TIFF file name.")
+
+def optflow(tune, default, name):
     """Optical flow related commands."""
-    pass
+    files = os.listdir(inbox_path)
+
+    for file in files:
+        if not file.endswith('.tif') or not file.endswith('.tiff'):
+            raise click.Exception(f"File {file} is not a TIFF file. Please remove all non-TIFF files from the inbox directory.")
+        
+    for file in files:
+        if tune:
+            click.echo(f"Sorry, this feature is not implemented yet. :p")
+        
+        elif default:
+            click.echo(f"Using default parameters for {file}.")
+            process = default_process
+            flow = default_flow
+
+        else:
+            path = inbox_path / file
+            img = ts.TiffStack(path, name)
+            params, default_flag = load_params(img.stacktype)
+
+            if default_flag:
+                click.echo(f"Using default parameters for {file}.")
+                process = default_process
+                flow = default_flow
+            else:
+                click.echo(f"Using custom parameters for {file}.")
+                process = params['process']
+                flow = params['flow']
+
+        flow = img.calculate_optical_flow(process_args=process, flow_args=flow)
+        if flow.shape != (img.arr.shape[0] - 1, img.arr.shape[1], img.arr.shape[2], 2):
+            raise click.Exception(f"""
+                                  Optical flow calculation failed for {file}. The output shape is {flow.shape}, 
+                                  expected {(img.arr.shape[0] - 1, img.arr.shape[1], img.arr.shape[2], 2)}.
+                                  \nPlease delete the corrputed file from the flow directory and try again.""")
+        else:
+            click.echo(f"Optical flow calculation successful for {file}!")
