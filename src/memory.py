@@ -264,3 +264,18 @@ def load_params(stacktype : str) -> dict:
         default_flag = False
 
     return params, default_flag
+
+def load_flow(path : str) -> np.ndarray:
+    """
+    Loads optical flow data from a .npy file.
+
+    Args:
+        path (str): The path to the .npy file containing the optical flow data.
+    
+    Returns:
+        np.ndarray: The loaded optical flow data.
+    """
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"Flow file not found at {path}")
+    
+    return np.load(path)
