@@ -4,12 +4,13 @@ import numpy as np
 from pathlib import Path
 import matplotlib.animation as animation
 from .defaults import default_process, default_flow, default_trajectory
+import shutil
 
 main_path = Path.cwd() / "CellFlow" # update this to make it desktop
 inbox_path = main_path / "inbox"
 types_path = main_path / "types.json"
 
-def init_memory(overwrite_flag : bool=False) -> None:
+def init_memory(overwrite_flag : bool = False) -> None:
     """
     Initializes memory for the application.
 
@@ -25,13 +26,19 @@ def init_memory(overwrite_flag : bool=False) -> None:
         None
     """
     try:
-        if not os.exists(main_path) or overwrite_flag:
-            os.makedirs(main_path, exist_ok=True)
+        if os.path.exists(main_path) and overwrite_flag:
+            shutil.rmtree(main_path)
+        if not os.path.exists(main_path):
+            os.makedirs(main_path)
 
-        if not os.exists(main_path) or overwrite_flag:
-            os.makedirs(inbox_path, exist_ok=True)
+        if os.path.exists(inbox_path) and overwrite_flag:
+            shutil.rmtree(inbox_path)
+        if not os.path.exists(inbox_path):
+            os.makedirs(inbox_path)
 
-        if not os.path.exists(types_path) or overwrite_flag:
+        if os.path.exists(types_path) and overwrite_flag:
+            os.remove(types_path)
+        if not os.path.exists(types_path):
             with open(types_path, "w") as f:
                 json.dump({}, f, indent=2)
 
