@@ -223,6 +223,25 @@ def save_video(name : str, flag : str, **kwargs) -> None:
     writer = Writer(fps=fps, metadata=dict(artist='Optical Flow'), bitrate=1800)
     ani.save(file_path, writer=writer)
 
+def load_metadata(path : str) -> dict:
+    """
+    Loads metadata from a JSON file.
+
+    Args:
+        path (str): The path to the metadata file.
+    
+    Returns:
+        dict: A dictionary containing the metadata.
+    """
+    meta_path = path / 'meta.json'
+    if not meta_path.exists():
+        raise FileNotFoundError(f"Metadata file not found at {meta_path}")
+    
+    with open(meta_path, 'r') as f:
+        meta = json.load(f)
+    
+    return meta
+
 def load_params(stacktype : str) -> dict:
     """
     Loads parameters from types.json.
