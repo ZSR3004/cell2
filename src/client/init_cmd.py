@@ -10,4 +10,4 @@ from src.memory import init_memory
               """)
 def init(force):
     """Initialize CellFlow."""
-    init_memory()
+    init_memory(overwrite_flag=force)
