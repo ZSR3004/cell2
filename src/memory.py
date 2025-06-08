@@ -150,7 +150,7 @@ def save_trajectory(name : str, ftag : str, arr : np.array) -> None:
     file_path = get_unique_path(name, 'trajectory', lambda i: f"{name}_t{ftag}{number_to_tag(i)}.npy")
     np.save(file_path, arr)
 
-def save_video(name : str, flag : str, **kwargs) -> None:
+def save_vector_video(name : str, flag : str, **kwargs) -> None:
     """
     Creates a video of optical flow vectors overlaid on the original image frames.
 

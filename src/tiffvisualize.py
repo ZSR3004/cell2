@@ -1,5 +1,5 @@
 import numpy as np
-from .memory import save_video
+from .memory import save_vector_video
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation, FFMpegWriter
 
@@ -135,7 +135,7 @@ def create_vector_field_video(name, arr : np.ndarray, og_arr : np.ndarray=None,
     quiver = ax.quiver(X, Y, U, V, scale=scale, pivot='tail', color=color)
 
     if flag != "":
-        save_video(name, flag, 
+        save_vector_video(name, flag, 
                    **{
                           'img_disp': img_disp,
                           'arr': arr,
