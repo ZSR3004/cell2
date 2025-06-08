@@ -150,6 +150,38 @@ def save_trajectory(name : str, ftag : str, arr : np.array) -> None:
     file_path = get_unique_path(name, 'trajectory', lambda i: f"{name}_t{ftag}{number_to_tag(i)}.npy")
     np.save(file_path, arr)
 
+def save_original_video(name : str, **kwargs) -> None:
+    """
+    Saves a video of image frames using matplotlib.
+    Args:
+        name (str): Name of the video file to save.
+        **kwargs: Additional keyword arguments that include:
+            - im: Matplotlib image display object for the original frames.
+            - image_stack: Image stack of shape (T, H, W) or (T, H, W, 3) for RGB.
+            - ax: Matplotlib axes object for the plot.
+            - fig: Matplotlib figure object for the plot.
+            - T: Total number of frames in the image stack.
+            - fps: Frames per second for the video.
+        Returns:
+            None: Just saves the video to the specified path.
+    """
+    im = kwargs.get('im', None)
+    image_stack = kwargs.get('image_stack', None)
+    ax = kwargs.get('ax', None)
+    fig = kwargs.get('fig', None)
+    T = kwargs.get('T', image_stack.shape[0])
+    fps = kwargs.get('fps', 10)
+
+    file_path = get_unique_path(name, 'video', lambda i: f"{name}_vo_{i}.mp4")
+
+    def update(frame):
+        im.set_data(image_stack[frame])
+        ax.set_title(f"Frame {frame}")
+
+    ani = animation.FuncAnimation(fig, update, frames=T, interval=1000/fps, blit=False)
+    writer = animation.FFMpegWriter(fps=fps)
+    ani.save(file_path, writer=writer)
+
 def save_vector_video(name : str, flag : str, **kwargs) -> None:
     """
     Creates a video of optical flow vectors overlaid on the original image frames.

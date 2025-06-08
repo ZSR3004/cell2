@@ -1,7 +1,6 @@
 import numpy as np
-from .memory import save_vector_video
+from .memory import save_original_video, save_vector_video
 import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation, FFMpegWriter
 
 def show_image(image : np.array, title='Image', figsize=(12, 8)) -> None:
     """
@@ -55,39 +54,40 @@ def show_flow(flow : np.array, title='Optical Flow',
     plt.tight_layout()
     plt.show()
 
-def save_image_video(image_stack: np.ndarray, output_path : str = 'image_video.mp4', 
-                     fps : int = 10, cmap : str = 'gray') -> None:
+def create_orginal_video(name, image_stack: np.ndarray, 
+                         figsize : int | int = (12, 8), fps : int = 10, cmap : str = 'gray') -> None:
     """
     Saves a video of image frames using matplotlib.
 
     Args:
+        name (str): Name of the video file to save.
         image_stack (np.ndarray): Image stack of shape (T, H, W) or (T, H, W, 3) for RGB.
-        output_path (str): Path to save the video.
-        fps (int): Frames per second.
-        cmap (str): Colormap for grayscale images.
+                                 T is the number of frames, H is height, W is width.
+        figsize (tuple): Figure size in inches (width, height). Default is (12, 8).
+        fps (int): Frames per second for the video. Default is 10.
+        cmap (str): Colormap to use for grayscale images. Default is 'gray'.
 
     Returns:
         None
-
-    TODO:
-        - Seperate into memory.py
     """
     T = image_stack.shape[0]
     is_grayscale = image_stack.ndim == 3  # (T, H, W)
     
-    fig, ax = plt.subplots(figsize=(12, 8))
+    fig, ax = plt.subplots(figsize=figsize)
     ax.axis('off')
     im = ax.imshow(image_stack[0], cmap=cmap if is_grayscale else None)
 
-    def update(frame):
-        im.set_data(image_stack[frame])
-        ax.set_title(f"Frame {frame}")
-
-    ani = FuncAnimation(fig, update, frames=T, interval=1000/fps, blit=False)
-    writer = FFMpegWriter(fps=fps)
-    ani.save(output_path, writer=writer)
+    save_original_video(name, 
+                        **{
+                            'im': im,
+                            'image_stack': image_stack,
+                            'ax': ax,
+                            'fig': fig,
+                            'T': T,
+                            'fps': fps
+                        })
+    
     plt.close(fig)
-    print(f"Video saved to {output_path}")
 
 def create_vector_field_video(name, arr : np.ndarray, og_arr : np.ndarray=None, 
                     step : int = 20, scale : int = 500, color : str = 'blue', 
