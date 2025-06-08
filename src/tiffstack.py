@@ -4,7 +4,7 @@ import tifffile as tiff
 import src.flow as flow
 import src.memory as mem
 import src.trajectory as traj
-from .tiffvisualize import create_vector_field_video
+from .tiffvisualize import create_vector_field_video, create_orginal_video
 from .defaults import default_process, default_flow, default_trajectory
 
 class TiffStack():
@@ -134,6 +134,21 @@ class TiffStack():
         combined = flow.combine_flows([flow_2, flow_3])
         mem.save_flow(self.name, combined)
         return combined
+    
+    def save_orginal_video(self, idx : int = 0, 
+                           figsize : int | int = (12, 8), fps : int = 10, cmap : str = 'gray') -> None:
+        """
+        Saves a video of the original image frames from the TIFF stack.
+
+        Args:
+            idx (int): Index of the channel to visualize. Default is 0.
+            figsize (tuple): Figure size in inches (width, height). Default is (12, 8).
+
+        Returns:
+            None
+        """
+        og_arr = self.isolate_channel(idx)
+        create_orginal_video(self.name, og_arr, figsize=figsize, fps=fps, cmap=cmap)
 
     def save_optflow_video(self, flow, idx : int = 0, step : int = 20, 
                           scale : int = 500, color : str = 'blue', fps : int = 10, 
