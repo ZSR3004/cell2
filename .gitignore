@@ -6,3 +6,6 @@
 
 # OpticalFlow Directory for Example Notebooks
 /example_notebooks/CellFlow
+
+# machine code
+__pycache__/
