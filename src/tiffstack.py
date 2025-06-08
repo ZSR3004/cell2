@@ -136,15 +136,22 @@ class TiffStack():
         return combined
 
     def save_optflow_video(self, flow, idx : int = 0, step : int = 20, 
-                          scale : int = 1, fps : int = 10, 
+                          scale : int = 500, color : str = 'blue', fps : int = 10, 
                           figsize : int | int = (12,8),
-                          title : str = None):
+                          title : str = None, overlay : bool = False) -> None:
+        
+        if overlay:
+            og_arr = self.isolate_channel(idx)
+        else:
+            og_arr = None 
+
         create_vector_field_video(
             self.name, 
             flow[:, idx, ...], 
-            self.isolate_channel(idx), 
+            og_arr, 
             step=step, 
-            scale=scale, 
+            scale=scale,
+            color=color, 
             fps=fps, 
             figsize=figsize, 
             title=title,
