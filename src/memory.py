@@ -158,18 +158,16 @@ def save_video(name : str, flag : str, **kwargs) -> None:
         name (str): Name of the video file to save.
         flag (str): Flag to determine the type of video being saved.
         **kwargs: Additional keyword arguments that include:
-            - img_disp (matplotlib.image.AxesImage): Image display object for the original frames.
-            - arr (np.ndarray): Optical flow array of shape (T, H, W, 2) where T is the number of frames,
-                H is height, W is width, and the last dimension contains the flow vectors (dx, dy).
-            - og_arr (np.ndarray): Original image frames array of shape (T, H, W, C).
-            - step (int): Step size for downsampling the flow vectors for visualization.
-            - fps (int): Frames per second for the video.
-            - figsize (tuple): Figure size in inches (width, height).
-            - title (str): Title of the video.
-            - quiver (matplotlib.quiver.Quiver): Quiver object for displaying flow vectors.
-            - ax (matplotlib.axes.Axes): Axes object for the plot.
-            - fig (matplotlib.figure.Figure): Figure object for the plot.
-            - T_minus_1 (int): Total number of frames minus one.
+            - img_disp: Matplotlib image display object for the original frames.
+            - arr: Optical flow array of shape (T, H, W, 2) where T is the number of frames,
+                   H is height, W is width, and the last dimension contains the flow vectors (dx, dy).
+            - og_arr: Original image frames array of shape (T, H, W, C). Default is None.
+            - step: Step size for downsampling the flow vectors for visualization. Default is 20.
+            - fps: Frames per second for the video. Default is 10.
+            - quiver: Matplotlib quiver object for displaying flow vectors.
+            - ax: Matplotlib axes object for the plot.
+            - fig: Matplotlib figure object for the plot.
+            - T_minus_1: Total number of frames minus one (T-1).
     Returns:
         None: Just saves the video to the specified path.
 
@@ -182,33 +180,29 @@ def save_video(name : str, flag : str, **kwargs) -> None:
     og_arr = kwargs.get('og_arr', None)
     step = kwargs.get('step', None)
     fps = kwargs.get('fps', None)
-    figsize = kwargs.get('figsize', None)
-    title = kwargs.get('title', None)
     quiver = kwargs.get('quiver', None)
     ax = kwargs.get('ax', None)
     fig = kwargs.get('fig', None)
-    T_minus_1 = kwargs.get('T_minus_1', None)
+    T = kwargs.get('T', None)
 
     if flag[0] not in ['f', 't']:
         raise ValueError(f'Invalid flag. Expected f or t, but got {flag}')
 
     file_path = get_unique_path(name, 'video', lambda i: f"{name}_v{flag}_{i}.mp4")
     
-    def update(frame : np.ndarray) -> tuple:
-        img_disp.set_data(og_arr[frame])
+    def update(frame):
         U = arr[frame, ::step, ::step, 0]
         V = arr[frame, ::step, ::step, 1]
         quiver.set_UVC(U, V)
-        if title == None:
-            ax.set_title(f'Frame {frame}')
-        else:
-            ax.set_title(f'{title} Frame {frame}')
-        return img_disp, quiver
-    
-    
-    ani = animation.FuncAnimation(fig, update, frames=T_minus_1, blit=False)
+
+        if img_disp is not None:
+            img_disp.set_data(og_arr[frame])
+
+        ax.set_title(f"Frame {frame}")
+
+    ani = animation.FuncAnimation(fig, update, frames=range(T), interval=1000/fps, blit=False)
     Writer = animation.writers['ffmpeg']
-    writer = Writer(fps=fps, metadata=dict(artist='Optical Flow'), bitrate=1800)
+    writer = Writer(fps=fps, metadata=dict(artist='Flow'), bitrate=1800)
     ani.save(file_path, writer=writer)
 
 def load_params(stacktype : str) -> dict:
