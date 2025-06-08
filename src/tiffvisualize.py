@@ -1,6 +1,25 @@
 import numpy as np
 from .memory import save_video
 import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation, FFMpegWriter, PillowWriter
+
+def show_image(image : np.array, title='Image', figsize=(12, 8)) -> None:
+    """
+    Displays an image using matplotlib.
+
+    Args:
+        image (np.ndarray): Image to display.
+        title (str): Title of the window. Default is 'Image'.
+        figsize (tuple): Figure size in inches (width, height). Default is (12, 8).
+
+    Returns:
+        None: Just displays the image.
+    """
+    plt.figure(figsize=figsize)
+    plt.imshow(image, cmap='gray')
+    plt.title(title)
+    plt.axis('off')
+    plt.show()
 
 def show_flow(flow : np.array, title='Optical Flow') -> None:
     """
@@ -30,23 +49,89 @@ def show_flow(flow : np.array, title='Optical Flow') -> None:
     plt.tight_layout()
     plt.show()
 
-def show_image(image : np.array, title='Image', figsize=(12, 8)) -> None:
+def save_image_video(image_stack: np.ndarray, output_path='image_video.mp4', fps=10, cmap='gray'):
     """
-    Displays an image using matplotlib.
+    Saves a video of image frames using matplotlib.
 
     Args:
-        image (np.ndarray): Image to display.
-        title (str): Title of the window. Default is 'Image'.
-        figsize (tuple): Figure size in inches (width, height). Default is (12, 8).
+        image_stack (np.ndarray): Image stack of shape (T, H, W) or (T, H, W, 3) for RGB.
+        output_path (str): Path to save the video.
+        fps (int): Frames per second.
+        cmap (str): Colormap for grayscale images.
 
     Returns:
-        None: Just displays the image.
+        None
     """
-    plt.figure(figsize=figsize)
-    plt.imshow(image, cmap='gray')
-    plt.title(title)
-    plt.axis('off')
-    plt.show()
+    T = image_stack.shape[0]
+    is_grayscale = image_stack.ndim == 3  # (T, H, W)
+    
+    fig, ax = plt.subplots(figsize=(12, 8))
+    ax.axis('off')
+    im = ax.imshow(image_stack[0], cmap=cmap if is_grayscale else None)
+
+    def update(frame):
+        im.set_data(image_stack[frame])
+        ax.set_title(f"Frame {frame}")
+
+    ani = FuncAnimation(fig, update, frames=T, interval=1000/fps, blit=False)
+    writer = FFMpegWriter(fps=fps)
+    ani.save(output_path, writer=writer)
+    plt.close(fig)
+    print(f"Video saved to {output_path}")
+
+def save_flow_video(flow_stack: np.ndarray, output_path='optical_flow.mp4', fps=10,
+                    image_stack: np.ndarray = None, step=25, scale=500):
+    """
+    Saves a video of optical flow (quiver animation), optionally overlaid on image frames.
+
+    Args:
+        flow_stack (np.ndarray): Flow of shape (T, H, W, 2).
+        output_path (str): File path to save the video.
+        fps (int): Frames per second of the video.
+        image_stack (np.ndarray, optional): Matching image stack (T, H, W) or (T, H, W, 3).
+        step (int): Sampling step for quiver vectors.
+        scale (float): Scale of the arrows.
+
+    Returns:
+        None
+    """
+    T, H, W, _ = flow_stack.shape
+    Y, X = np.mgrid[0:H:step, 0:W:step]
+
+    fig, ax = plt.subplots(figsize=(12, 6))
+    ax.set_xlim(0, W)
+    ax.set_ylim(H, 0)
+    ax.set_xlabel("X")
+    ax.set_ylabel("Y")
+    ax.set_title("Optical Flow")
+    ax.set_aspect('equal')
+    ax.axis('off')
+
+    if image_stack is not None:
+        is_gray = image_stack.ndim == 3
+        im = ax.imshow(image_stack[0], cmap='gray' if is_gray else None)
+    else:
+        im = None
+
+    U = flow_stack[0, ::step, ::step, 0]
+    V = flow_stack[0, ::step, ::step, 1]
+    quiv = ax.quiver(X, Y, U, V, scale=scale, pivot='tail', color='blue')
+
+    def update(frame):
+        U = flow_stack[frame, ::step, ::step, 0]
+        V = flow_stack[frame, ::step, ::step, 1]
+        quiv.set_UVC(U, V)
+
+        if im is not None:
+            im.set_data(image_stack[frame])
+
+        ax.set_title(f"Frame {frame}")
+
+    ani = FuncAnimation(fig, update, frames=T, interval=1000/fps, blit=False)
+    writer = FFMpegWriter(fps=fps)
+    ani.save(output_path, writer=writer)
+    plt.close(fig)
+    print(f"Saved flow video to {output_path}")
 
 def create_vector_field_video(name : str, arr : np.array, og_arr : np.array, 
                               step : int = 20, scale : int = 1, fps : int = 10, figsize : int | int = (12,8),
