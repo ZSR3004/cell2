@@ -2,6 +2,7 @@ import numpy as np
 from .memory import save_original_video, save_vector_video
 import matplotlib.pyplot as plt
 
+# Simple Frame Display
 def show_image(image : np.array, title='Image', figsize=(12, 8)) -> None:
     """
     Displays an image using matplotlib.
@@ -54,6 +55,68 @@ def show_flow(flow : np.array, title='Optical Flow',
     plt.tight_layout()
     plt.show()
 
+# Kymograph
+def plot_kymograph(line, figsize=(10, 6), aspect='auto', cmap='PRGn', origin='upper', label='Kymograph', 
+                   xlabel='Position along line', ylabel='Time (frame index)', title='Kymograph'):
+    """
+    Plots a kymograph from a 2D array.
+    
+    Args:
+        line (numpy.ndarray): 2D array representing the kymograph.
+        figsize (tuple): Size of the figure in inches (width, height).
+        aspect (str): Aspect ratio of the plot. Default is 'auto'.
+        cmap (str): Colormap to use for the kymograph. Default is 'PRGn'.
+        origin (str): Origin of the plot. Default is 'upper'.
+        label (str): Label for the colorbar.
+        xlabel (str): Label for the x-axis.
+        ylabel (str): Label for the y-axis.
+        title (str): Title of the plot.
+    Returns:
+        None: Just displays the kymograph.
+    """
+    plt.figure(figsize=figsize)
+    plt.imshow(line, aspect=aspect, cmap=cmap, origin=origin)
+    plt.colorbar(label=label)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.title(title)
+    plt.show()
+
+def vector_kymograph(arr, values=['x dir'], method=np.median):
+    """
+    Create kymographs from flow data.
+    
+    Args:
+        flow (numpy.ndarray): The flow data with shape (frames, height, width, 2).
+        values (list): List of values to plot. Options are ['x dir', 'y dir', 'mag', 'angle'].
+        method (function): Function to apply for kymograph calculation, e.g., np.median or np.mean.
+    
+    Returns:
+        None: Displays kymographs for the specified values.
+    """
+    if not any(val in values for val in ['x dir', 'y dir', 'mag', 'angle']):
+        raise ValueError("values must be a subset of ['x dir', 'y dir', 'mag', 'angle']")
+    if method not in [np.median, np.mean]:
+        print("Warning: this function was not designed to work with methods other than np.median or np.mean")
+
+    if 'x dir' in values or 'y dir' in values:
+        temp = np.array([method(arr[i, :, :, :], axis=0) for i in range(arr.shape[0])])
+        if 'x dir' in values:
+            plot_kymograph(temp[:, :, 0], title='X Direction Kymograph', label='Velocity (px/frame)')
+        if 'y dir' in values:
+            plot_kymograph(temp[:, :, 1], title='Y Direction Kymograph', label='Velocity (px/frame)')
+
+    if 'mag' in values:
+        mag_per_frame = np.linalg.norm(arr, axis=3)
+        temp = np.array([method(mag_per_frame[i, :, :], axis=0) for i in range(arr.shape[0])])
+        plot_kymograph(temp, title='Magnitude Kymograph', label='Speed (px/frame)')
+
+    if 'angle' in values:
+        angles_per_frame = np.arctan2(arr[:, :, :, 1], arr[:, :, :, 0])
+        temp = np.array([method(angles_per_frame[i, :, :], axis=0) for i in range(arr.shape[0])])
+        plot_kymograph(temp, title='Angle Kymograph', label='Direction (radians)')
+
+# Raw Data Video Creation
 def create_orginal_video(name, image_stack: np.ndarray, 
                          figsize : int | int = (12, 8), fps : int = 10, cmap : str = 'gray') -> None:
     """
