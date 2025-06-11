@@ -59,13 +59,14 @@ def show_flow(flow : np.array, title='Optical Flow',
     plt.show()
 
 # Kymograph
-def plot_kymograph(line, figsize=(10, 6), aspect='auto', cmap='PRGn', origin='upper', label='Kymograph', 
-                   xlabel='Position along line', ylabel='Time (frame index)', title='Kymograph'):
+def plot_kymograph(line, ax=None, figsize=(10, 6), aspect='auto', cmap='PRGn', origin='upper', label='Kymograph', 
+                   xlabel='Position along line', ylabel='Time (frame index)', title='Kymograph', show=True):
     """
     Plots a kymograph from a 2D array.
-    
+
     Args:
-        line (numpy.ndarray): 2D array representing the kymograph.
+        line (np.ndarray): 2D array representing the kymograph data.
+        ax (matplotlib.axes.Axes, optional): Axes to plot on. If None, creates a new figure.
         figsize (tuple): Size of the figure in inches (width, height).
         aspect (str): Aspect ratio of the plot. Default is 'auto'.
         cmap (str): Colormap to use for the kymograph. Default is 'PRGn'.
@@ -74,50 +75,63 @@ def plot_kymograph(line, figsize=(10, 6), aspect='auto', cmap='PRGn', origin='up
         xlabel (str): Label for the x-axis.
         ylabel (str): Label for the y-axis.
         title (str): Title of the plot.
+        show (bool): Whether to display the plot immediately.
+    
     Returns:
         None: Just displays the kymograph.
     """
-    plt.figure(figsize=figsize)
-    plt.imshow(line, aspect=aspect, cmap=cmap, origin=origin)
-    plt.colorbar(label=label)
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
-    plt.title(title)
-    plt.show()
+    if ax is None:
+        plt.figure(figsize=figsize)
+        ax = plt.gca()
+    im = ax.imshow(line, aspect=aspect, cmap=cmap, origin=origin)
+    cbar = plt.colorbar(im, ax=ax)
+    cbar.set_label(label)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    ax.set_title(title)
+    if show:
+        plt.show()
 
-def vector_kymograph(arr, values=['x dir'], method=np.median):
+def vector_kymograph(arr, values=['x dir'], method=np.median, combine=True):
     """
-    Create kymographs from flow data.
-    
-    Args:
-        flow (numpy.ndarray): The flow data with shape (frames, height, width, 2).
-        values (list): List of values to plot. Options are ['x dir', 'y dir', 'mag', 'angle'].
-        method (function): Function to apply for kymograph calculation, e.g., np.median or np.mean.
-    
-    Returns:
-        None: Displays kymographs for the specified values.
+    Create and optionally combine kymographs from flow data.
     """
     if not any(val in values for val in ['x dir', 'y dir', 'mag', 'angle']):
         raise ValueError("values must be a subset of ['x dir', 'y dir', 'mag', 'angle']")
     if method not in [np.median, np.mean]:
         print("Warning: this function was not designed to work with methods other than np.median or np.mean")
 
+    plots = []
+
     if 'x dir' in values or 'y dir' in values:
         temp = np.array([method(arr[i, :, :, :], axis=0) for i in range(arr.shape[0])])
         if 'x dir' in values:
-            plot_kymograph(temp[:, :, 0], title='X Direction Kymograph', label='Velocity (px/frame)')
+            plots.append((temp[:, :, 0], 'X Direction Kymograph', 'X Component of Velocity (px/frame)', 'PRGn'))
         if 'y dir' in values:
-            plot_kymograph(temp[:, :, 1], title='Y Direction Kymograph', label='Velocity (px/frame)')
+            plots.append((temp[:, :, 1], 'Y Direction Kymograph', 'Y Component of Velocity (px/frame)', 'PRGn'))
 
     if 'mag' in values:
         mag_per_frame = np.linalg.norm(arr, axis=3)
         temp = np.array([method(mag_per_frame[i, :, :], axis=0) for i in range(arr.shape[0])])
-        plot_kymograph(temp, title='Magnitude Kymograph', label='Speed (px/frame)')
+        plots.append((temp, 'Magnitude Kymograph', 'Speed (px/frame)', 'BuPu'))
 
     if 'angle' in values:
         angles_per_frame = np.arctan2(arr[:, :, :, 1], arr[:, :, :, 0])
         temp = np.array([method(angles_per_frame[i, :, :], axis=0) for i in range(arr.shape[0])])
-        plot_kymograph(temp, title='Angle Kymograph', label='Direction (radians)')
+        plots.append((temp, 'Angle Kymograph', 'Direction (radians)', 'BuPu'))
+
+    if combine:
+        n = len(plots)
+        fig, axs = plt.subplots(n, 1, figsize=(10, 4 * n))
+        if n == 1:
+            axs = [axs]  # Make iterable if only one subplot
+        for ax, (data, title, label, cmap) in zip(axs, plots):
+            plot_kymograph(data, ax=ax, show=False, title=title, label=label, cmap=cmap)
+        plt.tight_layout()
+        plt.show()
+    else:
+        for data, title, label, cmap in plots:
+            plot_kymograph(data, title=title, label=label, cmap=cmap)
 
 # Heatmap
 def vector_magnitude_heatmaps(flow, normalize=True):
