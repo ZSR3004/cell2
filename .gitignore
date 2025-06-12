@@ -7,5 +7,9 @@
 # OpticalFlow Directory for Example Notebooks
 /example_notebooks/CellFlow
 
+# Remove large example images except one for illustrative purposes
+/example_notebooks/example_images
+!example_notebooks/example_images/20220929_MCF_Rab5a_WH_heterotypic_s1_SCALED.tif
+
 # machine code
 __pycache__/
