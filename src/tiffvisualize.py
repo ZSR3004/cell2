@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
-from .memory import save_original_video, save_vector_video
+from src.memory import save_original_video, save_vector_video
 
 import matplotlib.animation as animation
 
