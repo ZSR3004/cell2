@@ -90,30 +90,6 @@ def combine_flows(flow_list : list) -> np.ndarray:
     combined = np.stack([sum_arr, flow_list[0], flow_list[1]], axis=1)
     return combined
 
-def optical_flow(   arr : np.array,
-                    pyr_scale : float = 0.5, 
-                    levels : int = 3, 
-                    winsize : int = 15,
-                    iterations : int = 3, 
-                    poly_n : int = 5, 
-                    poly_sigma : float = 1.2,
-                    flag : int = 0,
-                    default = False):
-    
-    num_frames, h, w = arr.shape
-    flow = np.empty((num_frames - 1, h, w, 2), dtype=np.float32)
-    
-    for i in range(num_frames - 1):
-        f1 = arr[i]
-        f2 = arr[i + 1]
-        flow[i] = cv2.calcOpticalFlowFarneback(f1, f2, None,
-                                                pyr_scale, levels, 
-                                                winsize, iterations, 
-                                                poly_n, poly_sigma, 
-                                                flag)
-
-    return flow
-
 def compute_flow_pair(args) -> np.ndarray:
     """
     Computes optical flow for a pair of frames using Farneback method.
