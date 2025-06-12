@@ -4,8 +4,8 @@ import tifffile as tiff
 import src.flow as flow
 import src.memory as mem
 import src.trajectory as traj
-from .tiffvisualize import create_vector_field_video, create_orginal_video
-from .defaults import default_process, default_flow, default_trajectory
+from src.tiffvisualize import create_vector_field_video, create_orginal_video
+from src.defaults import default_process, default_flow, default_trajectory
 
 class TiffStack():
     def __init__(self, path, stacktype, name = None, n_channels = 3, dtype = np.uint16):
