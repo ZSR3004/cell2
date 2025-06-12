@@ -6,6 +6,7 @@
 
 # OpticalFlow Directory for Example Notebooks
 /example_notebooks/CellFlow
+*.mp4
 
 # Remove large example images except one for illustrative purposes
 /example_notebooks/example_images
