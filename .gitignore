@@ -13,3 +13,4 @@
 
 # machine code
 __pycache__/
+*.egg-info/
