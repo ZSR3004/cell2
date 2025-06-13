@@ -6,27 +6,31 @@ from src.memory import save_original_video, save_vector_video
 import matplotlib.animation as animation
 
 # Simple Frame Display
-def show_image(image : np.array, title='Image', figsize=(12, 8)) -> None:
+def show_image(image : np.array, title='Image', figsize=(12, 8), save_path=None) -> None:
     """
-    Displays an image using matplotlib.
+    Displays or saves an image using matplotlib.
 
     Args:
         image (np.ndarray): Image to display.
-        title (str): Title of the window. Default is 'Image'.
-        figsize (tuple): Figure size in inches (width, height). Default is (12, 8).
+        title (str): Title of the window.
+        figsize (tuple): Figure size in inches (width, height).
+        save_path (str, optional): If provided, saves the image to this path.
 
     Returns:
-        None: Just displays the image.
+        None
     """
     plt.figure(figsize=figsize)
     plt.imshow(image, cmap='gray')
     plt.title(title)
     plt.axis('off')
-    plt.show()
+    if save_path:
+        plt.savefig(save_path, bbox_inches='tight')
+    else:
+        plt.show()
 
 def show_flow(flow : np.array, title='Optical Flow', 
               step : int = 25, figsize : int | int = (12,6), scale : int = 200, 
-              pivot : str = 'tail', color : str = 'blue') -> None:
+              pivot : str = 'tail', color : str = 'blue', save_path : str = None) -> None:
     """
     Displays optical flow as a quiver plot using matplotlib.
 
@@ -56,11 +60,14 @@ def show_flow(flow : np.array, title='Optical Flow',
     plt.xlabel("X")
     plt.ylabel("Y")
     plt.tight_layout()
-    plt.show()
+    if save_path:
+        plt.savefig(save_path, bbox_inches='tight')
+    else:
+        plt.show()
 
 # Kymograph
 def plot_kymograph(line, ax=None, figsize=(10, 6), aspect='auto', cmap='PRGn', origin='upper', label='Kymograph', 
-                   xlabel='Position along line', ylabel='Time (frame index)', title='Kymograph', show=True):
+                   xlabel='Position along line', ylabel='Time (frame index)', title='Kymograph', show=True, save_path=None):
     """
     Plots a kymograph from a 2D array.
 
@@ -89,10 +96,12 @@ def plot_kymograph(line, ax=None, figsize=(10, 6), aspect='auto', cmap='PRGn', o
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
     ax.set_title(title)
+    if save_path:
+        plt.savefig(save_path, bbox_inches='tight')
     if show:
         plt.show()
 
-def vector_kymograph(arr, values=['x dir'], method=np.median, combine=True):
+def vector_kymograph(arr, values=['x dir'], method=np.median, combine=True, save_path=None):
     """
     Create and optionally combine kymographs from flow data.
     """
@@ -126,12 +135,12 @@ def vector_kymograph(arr, values=['x dir'], method=np.median, combine=True):
         if n == 1:
             axs = [axs]  # Make iterable if only one subplot
         for ax, (data, title, label, cmap) in zip(axs, plots):
-            plot_kymograph(data, ax=ax, show=False, title=title, label=label, cmap=cmap)
+            plot_kymograph(data, ax=ax, show=False, title=title, label=label, cmap=cmap, save_path=save_path)
         plt.tight_layout()
         plt.show()
     else:
         for data, title, label, cmap in plots:
-            plot_kymograph(data, title=title, label=label, cmap=cmap)
+            plot_kymograph(data, title=title, label=label, cmap=cmap, save_path=save_path)
 
 # Heatmap
 def vector_magnitude_heatmaps(flow, normalize=True):
