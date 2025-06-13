@@ -9,14 +9,15 @@ def preprocess_frame(args) -> np.ndarray:
     and type conversion.
 
     Args:
-        frame (np.ndarray): Input image/frame.
-        **kwargs:
-            - laplace (dict): {'sigma': float} for Gaussian Laplace filter
-            - gauss (dict): {'ksize': (int, int), 'sigmaX': float}
-            - median (dict): {'ksize': int}
-            - normalize (dict): {'alpha': int, 'beta': int, 'norm_type': int}
-            - convert (dict): {'dtype': np.dtype}
-            - skip (list[str]): steps to skip (e.g., ['gauss', 'median'])
+        args (tuple): A tuple containing the frame and a dictionary of preprocessing parameters.
+            - frame (np.ndarray): Input frame to preprocess.
+            - kwargs (dict): Dictionary with preprocessing parameters:
+                - laplace (dict): {'sigma': float} for Gaussian Laplace filter
+                - gauss (dict): {'ksize': (int, int), 'sigmaX': float}
+                - median (dict): {'ksize': int}
+                - normalize (dict): {'alpha': int, 'beta': int, 'norm_type': int}
+                - contrast (dict): {'alpha': float, 'beta': int}
+                - skip (list[str]): steps to skip (e.g., ['gauss', 'median'])
 
     Returns:
         np.ndarray: Preprocessed image.
@@ -40,15 +41,18 @@ def preprocess_frame(args) -> np.ndarray:
         ksize = median_cfg.get("ksize", 5)
         frame = cv2.medianBlur(frame, ksize)
 
-    if "normalize" not in skip:
-        norm_cfg = kwargs.get("normalize", {})
-        alpha = norm_cfg.get("alpha", 0)
-        beta = norm_cfg.get("beta", 255)
-        norm_type = norm_cfg.get("norm_type", cv2.NORM_MINMAX)
+    if "minmax" not in skip:
+        normalize_cfg = kwargs.get("normalize", {})
+        alpha = normalize_cfg.get("alpha", 0)
+        beta = normalize_cfg.get("beta", 255)
+        norm_type = normalize_cfg.get("norm_type", cv2.NORM_MINMAX)
         frame = cv2.normalize(frame, None, alpha, beta, norm_type)
 
-    if "convert" not in skip:
-        frame = cv2.convertScaleAbs(frame)
+    if "contrast" not in skip:
+        contrast_cfg = kwargs.get("contrast", {})
+        alpha = contrast_cfg.get("alpha", 1.0)  # Contrast factor
+        beta = contrast_cfg.get("beta", 0)      # Brightness offset
+        frame = cv2.convertScaleAbs(frame, alpha=alpha, beta=beta)
 
     return frame
 
@@ -59,13 +63,7 @@ def preprocess_stack(arr: np.ndarray, **kwargs) -> np.ndarray:
 
     Args:
         arr (np.ndarray): Input stack of frames (shape: N x H x W).
-        **kwargs:
-            - laplace (dict): {'sigma': float} for Gaussian Laplace filter
-            - gauss (dict): {'ksize': (int, int), 'sigmaX': float}
-            - median (dict): {'ksize': int}
-            - normalize (dict): {'alpha': int, 'beta': int, 'norm_type': int}
-            - convert (dict): {'dtype': np.dtype}
-            - skip (list[str]): steps to skip (e.g., ['gauss', 'median'])
+        **kwargs: Dictionary with preprocessing parameters (see preprocess_frame).
 
     Returns:
         np.ndarray: Preprocessed stack of frames.
